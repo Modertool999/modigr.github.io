@@ -18,6 +18,9 @@
       --panel:#0b1713;
       --line:#1a2b24;
       --ui-font:"Comic Sans MS","Comic Sans","Comic Neue",cursive;
+      --shine-1:#87f6bf;
+      --shine-2:#e4ffe4;
+      --shine-3:#8fe9b8;
     }
     *{ box-sizing:border-box; }
     body, button, input, select, textarea{ font-family:var(--ui-font) !important; }
@@ -52,6 +55,70 @@
     .imgblock{ border:1px solid var(--line); border-radius:14px; overflow:hidden; background:#09130f; margin-top:12px; }
     .imgblock img{ display:block; width:100%; height:auto; margin:0; }
     .caption{ font-size:12px; color:#a9d7c5; text-align:center; margin-top:6px; }
+
+    /* --- Fancy hover effect for the word "Modi" --- */
+    .name-hover{
+      position:relative;
+      display:inline-block;
+      padding:0 .12em;
+      cursor:pointer;
+      background:linear-gradient(90deg,var(--shine-1),var(--shine-2),var(--shine-3));
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+      text-shadow:0 0 0 rgba(0,0,0,0); /* keep layout consistent */
+      transition:transform .18s ease, filter .18s ease, text-shadow .18s ease;
+    }
+    .name-hover::after{
+      /* animated underline bar */
+      content:"";
+      position:absolute;
+      left:10%;
+      right:10%;
+      bottom:-4px;
+      height:3px;
+      background:linear-gradient(90deg,var(--shine-1),var(--shine-2),var(--shine-3));
+      border-radius:2px;
+      transform:scaleX(0);
+      transform-origin:left;
+      transition:transform .25s ease;
+      opacity:.95;
+    }
+    .name-hover::before{
+      /* soft glow halo behind the text */
+      content:"";
+      position:absolute;
+      inset:-6px -10px;
+      border-radius:10px;
+      background:radial-gradient(60% 60% at 50% 50%, rgba(135,246,191,.25), rgba(135,246,191,0) 70%);
+      filter:blur(8px);
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .2s ease;
+    }
+    .name-hover:hover{
+      transform:translateY(-1px) rotate(-.4deg);
+      text-shadow:0 0 8px rgba(143,233,184,.55), 0 0 18px rgba(228,255,228,.35);
+      filter:saturate(1.2);
+    }
+    .name-hover:hover::after{ transform:scaleX(1); }
+    .name-hover:hover::before{ opacity:1; }
+    /* smooth shimmer across the gradient when hovered */
+    .name-hover:hover{
+      background-size:200% 100%;
+      animation:shimmer 1.4s linear infinite;
+    }
+    @keyframes shimmer{
+      0%   { background-position:0% 0; }
+      100% { background-position:200% 0; }
+    }
+    /* Respect reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      .name-hover,
+      .name-hover::after,
+      .name-hover::before { transition:none !important; }
+      .name-hover{ animation:none !important; }
+    }
   </style>
 </head>
 <body>
@@ -72,7 +139,7 @@
     <section class="grid grid-2col" style="align-items:flex-start;">
       <!-- LEFT -->
       <div>
-        <h1>Hi! I'm Modi.</h1>
+        <h1>Hi! I'm <span class="name-hover" aria-label="Modi">Modi</span>.</h1>
         <p style="margin-top:10px; max-width:700px;">
           Cornell CS Junior. Also a big Jets fan.
         </p>
@@ -181,6 +248,6 @@
     Made with love (and Azure) by Modi Goldstein-Rosenfeld
   </footer>
 
-  <script>document.getElementById('y').textContent=new Date().getFullYear();</script>
+  <script>document.getElementById('y') && (document.getElementById('y').textContent=new Date().getFullYear());</script>
 </body>
 </html>
