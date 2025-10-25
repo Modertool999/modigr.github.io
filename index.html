@@ -21,6 +21,9 @@
       --shine-1:#87f6bf;
       --shine-2:#e4ffe4;
       --shine-3:#8fe9b8;
+      /* mouse position defaults */
+      --mx:50%;
+      --my:50%;
     }
     *{ box-sizing:border-box; }
     body, button, input, select, textarea{ font-family:var(--ui-font) !important; }
@@ -56,68 +59,60 @@
     .imgblock img{ display:block; width:100%; height:auto; margin:0; }
     .caption{ font-size:12px; color:#a9d7c5; text-align:center; margin-top:6px; }
 
-    /* --- Fancy hover effect for the word "Modi" --- */
+    /* === Interactive, non-clickable name effect === */
     .name-hover{
       position:relative;
       display:inline-block;
       padding:0 .12em;
-      cursor:pointer;
+      /* gradient text base */
       background:linear-gradient(90deg,var(--shine-1),var(--shine-2),var(--shine-3));
       -webkit-background-clip:text;
       background-clip:text;
       color:transparent;
-      text-shadow:0 0 0 rgba(0,0,0,0); /* keep layout consistent */
-      transition:transform .18s ease, filter .18s ease, text-shadow .18s ease;
+      /* non-clickable vibe */
+      cursor:default;
+      text-decoration:none;
+      user-select:text; /* you can still select text */
+      transition:filter .18s ease, text-shadow .18s ease, transform .18s ease;
     }
+    /* dark green “spotlight” that follows the mouse; clipped to the text */
     .name-hover::after{
-      /* animated underline bar */
-      content:"";
+      content:attr(data-text);
       position:absolute;
-      left:10%;
-      right:10%;
-      bottom:-4px;
-      height:3px;
+      inset:0;
+      font:inherit;
+      color:transparent;
+      background:
+        radial-gradient(120px 120px at var(--mx) var(--my),
+          rgba(10, 60, 42, .85),       /* deep/darker green center */
+          rgba(10, 60, 42, .00) 60%);
+      -webkit-background-clip:text;
+      background-clip:text;
+      pointer-events:none;
+      transition:opacity .15s ease;
+      opacity:0; /* only show on hover/active */
+    }
+    .name-hover:hover{ transform:translateY(-1px); text-shadow:0 0 10px rgba(143,233,184,.35); }
+    .name-hover:hover::after{ opacity:1; }
+
+    /* Underline that slides in, also non-clickable */
+    .name-hover::before{
+      content:"";
+      position:absolute; left:12%; right:12%; bottom:-5px; height:3px;
       background:linear-gradient(90deg,var(--shine-1),var(--shine-2),var(--shine-3));
       border-radius:2px;
       transform:scaleX(0);
       transform-origin:left;
-      transition:transform .25s ease;
+      transition:transform .22s ease;
+      pointer-events:none;
       opacity:.95;
     }
-    .name-hover::before{
-      /* soft glow halo behind the text */
-      content:"";
-      position:absolute;
-      inset:-6px -10px;
-      border-radius:10px;
-      background:radial-gradient(60% 60% at 50% 50%, rgba(135,246,191,.25), rgba(135,246,191,0) 70%);
-      filter:blur(8px);
-      opacity:0;
-      pointer-events:none;
-      transition:opacity .2s ease;
-    }
-    .name-hover:hover{
-      transform:translateY(-1px) rotate(-.4deg);
-      text-shadow:0 0 8px rgba(143,233,184,.55), 0 0 18px rgba(228,255,228,.35);
-      filter:saturate(1.2);
-    }
-    .name-hover:hover::after{ transform:scaleX(1); }
-    .name-hover:hover::before{ opacity:1; }
-    /* smooth shimmer across the gradient when hovered */
-    .name-hover:hover{
-      background-size:200% 100%;
-      animation:shimmer 1.4s linear infinite;
-    }
-    @keyframes shimmer{
-      0%   { background-position:0% 0; }
-      100% { background-position:200% 0; }
-    }
-    /* Respect reduced motion */
+    .name-hover:hover::before{ transform:scaleX(1); }
+
+    /* Reduced motion support */
     @media (prefers-reduced-motion: reduce) {
-      .name-hover,
-      .name-hover::after,
-      .name-hover::before { transition:none !important; }
-      .name-hover{ animation:none !important; }
+      .name-hover, .name-hover::before, .name-hover::after { transition:none !important; }
+      .name-hover{ transform:none !important; text-shadow:none !important; }
     }
   </style>
 </head>
@@ -139,9 +134,9 @@
     <section class="grid grid-2col" style="align-items:flex-start;">
       <!-- LEFT -->
       <div>
-        <h1>Hi! I'm <span class="name-hover" aria-label="Modi">Modi</span>.</h1>
+        <h1>Hi! I'm <span class="name-hover" data-text="Modi" id="modi">Modi</span>.</h1>
         <p style="margin-top:10px; max-width:700px;">
-          Cornell CS Junior. Also a big Jets fan.
+          CS Undergraduate + Big Jets Fan
         </p>
         <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
           <a class="btn" href="steam.html">Try Video Game Recommender</a>
@@ -247,6 +242,27 @@
   <footer>
     Made with love (and Azure) by Modi Goldstein-Rosenfeld
   </footer>
+
+  <!-- Mouse-position tracker for the name -->
+  <script>
+    (function(){
+      const el = document.getElementById('modi');
+      if(!el) return;
+
+      function setPos(e){
+        const r = el.getBoundingClientRect();
+        const x = ((e.clientX ?? (e.touches?.[0]?.clientX || 0)) - r.left) / r.width * 100;
+        const y = ((e.clientY ?? (e.touches?.[0]?.clientY || 0)) - r.top) / r.height * 100;
+        el.style.setProperty('--mx', x + '%');
+        el.style.setProperty('--my', y + '%');
+      }
+
+      el.addEventListener('mousemove', setPos);
+      el.addEventListener('touchmove', setPos, {passive:true});
+      el.addEventListener('mouseenter', (e)=>setPos(e));
+      el.addEventListener('mouseleave', ()=>{ el.style.setProperty('--mx','50%'); el.style.setProperty('--my','50%'); });
+    })();
+  </script>
 
   <script>document.getElementById('y') && (document.getElementById('y').textContent=new Date().getFullYear());</script>
 </body>
