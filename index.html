@@ -7,7 +7,7 @@
   <meta name="color-scheme" content="dark" />
   <style>
     :root { color-scheme: dark; --jets:#125740; --jets-dk:#0e4736; --ink:#e8f3ed; --panel:#0b1713; --line:#1a2b24; }
-    * { box-sizing: border-box; font-family:"Comic Sans MS","Comic Sans",cursive !important; }
+    * { box-sizing:border-box; font-family:"Comic Sans MS","Comic Sans",cursive !important; }
     body { margin:0; background:var(--panel); color:var(--ink); }
     a { color:#8fe9b8; text-decoration:none; } a:hover{text-decoration:underline;}
     .wrap { max-width:1040px; margin:0 auto; padding:0 16px; }
@@ -27,7 +27,7 @@
     .btn-outline:hover { background:#0f201a; }
 
     .grid { display:grid; gap:18px; }
-    @media(min-width: 900px){ .grid-5{ grid-template-columns: 3fr 2fr; } .grid-2{ grid-template-columns: 1fr 1fr; } }
+    @media(min-width: 980px){ .grid-2col { grid-template-columns: 3fr 2fr; } .grid-2 { grid-template-columns: 1fr 1fr; } }
 
     h1{ margin:0; font-size:40px; line-height:1.1; }
     h2{ margin:0 0 6px 0; font-size:26px; }
@@ -36,8 +36,7 @@
     ul{ margin:8px 0 0 0; padding-left:20px; }
     footer { color:#a9d7c5; text-align:center; font-size:12px; padding:36px 0 60px; border-top:2px solid #0a2e23; margin-top:28px; }
 
-    /* Image block: kill “left green space” by making it full-bleed in its card */
-    .imgblock { border:1px solid var(--line); border-radius:14px; overflow:hidden; background:#09130f; }
+    .imgblock { border:1px solid var(--line); border-radius:14px; overflow:hidden; background:#09130f; margin-top:12px; }
     .imgblock img { display:block; width:100%; height:auto; margin:0; }
     .caption { font-size:12px; color:#a9d7c5; text-align:center; margin-top:6px; }
   </style>
@@ -48,7 +47,7 @@
       <a class="brand" href="index.html">Modi Goldstein-Rosenfeld</a>
       <nav>
         <a class="active" href="index.html">Home</a>
-        <a href="steam.html">Steam Recommender</a>
+        <a href="steam.html">Video Game Recommender</a>
         <a href="spy.html">SPY Forecaster</a>
         <a href="https://github.com/Modertool999" target="_blank" rel="noopener">GitHub ↗</a>
       </nav>
@@ -56,18 +55,63 @@
   </header>
 
   <main class="wrap" style="padding-top:20px;">
-    <!-- Hero -->
-    <section class="grid grid-5" style="align-items:flex-start;">
+    <!-- Hero (left: headline + buttons + Chad; right: resume) -->
+    <section class="grid grid-2col" style="align-items:flex-start;">
       <div>
-        <h1>I build small, focused ML/data projects with live demos.</h1>
-        <p style="margin-top:10px; max-width:640px;">
-          End-to-end: data, modeling, APIs, and UI. Project pages have short write-ups and working demos.
+        <h1>I build focused ML/data projects with live demos.</h1>
+        <p style="margin-top:10px; max-width:700px;">
+          End-to-end: data, modeling, APIs, and UI. Project pages include short write-ups and working demos.
         </p>
         <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
-          <a class="btn" href="steam.html">Try Steam Recommender</a>
+          <a class="btn" href="steam.html">Try Video Game Recommender</a>
           <a class="btn-outline" href="spy.html">Run SPY Backtest</a>
         </div>
+
+        <!-- Put Chad directly under the button to remove empty space -->
+        <div class="imgblock">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/e/ed/ChadPennington1-crop.jpg"
+               alt="Chad Pennington, Texans vs. Jets — Nov 26, 2006" />
+        </div>
+        <div class="caption">Chad Pennington, Texans vs. Jets — Nov 26, 2006 (public domain, via Wikimedia Commons)</div>
+
+        <!-- About me lives on the LEFT now -->
+        <section style="margin-top:18px;">
+          <div class="card">
+            <h2>About me</h2>
+            <div class="grid" style="margin-top:8px; gap:16px;">
+              <div>
+                <h3>Research interests</h3>
+                <ul>
+                  <li>Designing a Julia-style language for fast matrix operations.</li>
+                  <li>Large experiments (5k–10k dims) with speed/accuracy/stability trade-offs.</li>
+                  <li>Recommendation systems that mix content and social signals.</li>
+                  <li>Practical time-series forecasting.</li>
+                </ul>
+              </div>
+              <div>
+                <h3>Engineering interests</h3>
+                <ul>
+                  <li>Clean Python APIs (Flask/FastAPI) with clear errors and simple configs.</li>
+                  <li>Useful CI/CD: Actions checks, one-line setup, safe upgrades.</li>
+                  <li>Reproducible containers with traceable provenance.</li>
+                  <li>Data pipelines for scraping, cleaning, and standardization.</li>
+                </ul>
+              </div>
+              <div>
+                <h3>Personal</h3>
+                <ul>
+                  <li>New York sports, bass fishing, fantasy football, épée fencing.</li>
+                  <li>Pokémon, 2000s rock, <em>The Sopranos</em>.</li>
+                </ul>
+              </div>
+            </div>
+            <p style="margin-top:10px; font-size:13px; color:#a9d7c5;">
+              FYI: “Steam” is a popular PC gaming platform by Valve; the recommender uses Steam data to personalize picks.
+            </p>
+          </div>
+        </section>
       </div>
+
       <div>
         <div class="card">
           <div style="color:#a9d7c5; font-size:13px;">Résumé</div>
@@ -78,72 +122,32 @@
             <a class="btn-outline" href="#contact">Contact</a>
           </div>
         </div>
-        <div style="height:10px;"></div>
-        <!-- Full-bleed image (no side padding) -->
-        <div class="imgblock">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/e/ed/ChadPennington1-crop.jpg" alt="Chad Pennington on the Jets sideline, Texans vs. Jets, Nov 26, 2006" />
-        </div>
-        <div class="caption">Chad Pennington, Texans vs. Jets — Nov 26, 2006 (public domain, via Wikimedia Commons)</div>
       </div>
     </section>
 
-    <!-- About -->
-    <section style="margin-top:20px;">
-      <div class="card">
-        <h2>About me</h2>
-        <div class="grid" style="margin-top:8px; gap:16px;">
-          <div>
-            <h3>Research interests</h3>
-            <ul>
-              <li>Designing a Julia-style language for fast matrix operations.</li>
-              <li>Running large experiments (5k–10k dims) and measuring speed/accuracy/stability.</li>
-              <li>Recommendation systems that mix content and social signals.</li>
-              <li>Practical time-series forecasting.</li>
-            </ul>
-          </div>
-          <div>
-            <h3>Engineering interests</h3>
-            <ul>
-              <li>Clean Python APIs (Flask/FastAPI) with clear errors and simple configs.</li>
-              <li>Useful CI/CD: GitHub Actions checks, one-line setup, safe upgrades.</li>
-              <li>Reproducible containers with traceable provenance.</li>
-              <li>Data pipelines for scraping, cleaning, and standardization.</li>
-            </ul>
-          </div>
-          <div>
-            <h3>Personal</h3>
-            <ul>
-              <li>New York sports, bass fishing, fantasy football, épée fencing.</li>
-              <li>Pokémon, 2000s rock, <em>The Sopranos</em>.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Featured projects (now 4) -->
+    <!-- Featured projects -->
     <section style="margin-top:20px;">
       <h2>Featured Projects</h2>
       <div class="grid grid-2" style="margin-top:8px;">
         <a class="card" href="steam.html" style="display:block;">
           <div style="color:#a9d7c5; font-size:12px;">Flask · Steam Web API</div>
-          <div style="font-size:20px; font-weight:700;">Steam Game Recommender</div>
-          <p style="margin-top:6px;">TF-IDF + friends’ signals → ranked recs. Live demo.</p>
+          <div style="font-size:20px; font-weight:700;">Video Game Recommender</div>
+          <p style="margin-top:6px;">TF-IDF + friends’ signals → ranked picks (uses Steam data).</p>
         </a>
         <a class="card" href="spy.html" style="display:block;">
           <div style="color:#a9d7c5; font-size:12px;">FastAPI · scikit-learn · yfinance</div>
           <div style="font-size:20px; font-weight:700;">S&amp;P 500 Next-Day Forecaster</div>
-          <p style="margin-top:6px;">Long-or-cash strategy with equity curve and summary stats.</p>
+          <p style="margin-top:6px;">Long-or-cash strategy with equity curve and stats.</p>
         </a>
         <a class="card" href="https://github.com/Cornell-Fintech-Club/algo-oil" target="_blank" rel="noopener" style="display:block;">
           <div style="color:#a9d7c5; font-size:12px;">PyTorch · NLP</div>
           <div style="font-size:20px; font-weight:700;">Oil Trading Model</div>
-          <p style="margin-top:6px;">Sentiment pipeline using DistilRoBERTa over 450+ oil news articles.</p>
+          <p style="margin-top:6px;">Sentiment pipeline using DistilRoBERTa over oil news.</p>
         </a>
         <a class="card" href="https://github.com/Modertool999/cli-subcommand-representation" target="_blank" rel="noopener" style="display:block;">
           <div style="color:#a9d7c5; font-size:12px;">Python · CLI</div>
           <div style="font-size:20px; font-weight:700;">CLI Sub-command Representation</div>
-          <p style="margin-top:6px;">Lightweight tooling for modeling sub-commands and flags.</p>
+          <p style="margin-top:6px;">Lightweight modeling of command trees and flags.</p>
         </a>
       </div>
     </section>

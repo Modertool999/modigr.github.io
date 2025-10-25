@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Steam Recommender · Modi</title>
+  <title>Video Game Recommender · Modi</title>
   <meta name="color-scheme" content="dark" />
   <style>
     :root { color-scheme: dark; --jets:#125740; --panel:#0b1713; --line:#1a2b24; --ink:#e8f3ed; }
@@ -42,7 +42,7 @@
       <a class="brand" href="index.html">Modi Goldstein-Rosenfeld</a>
       <nav>
         <a href="index.html">Home</a>
-        <a class="active" href="steam.html">Steam</a>
+        <a class="active" href="steam.html">Video Game Recommender</a>
         <a href="spy.html">SPY</a>
         <a href="https://github.com/Modertool999/game-recommender" target="_blank" rel="noopener">Repo ↗</a>
       </nav>
@@ -51,8 +51,12 @@
 
   <main class="wrap" style="padding-top:20px;">
     <section class="card">
-      <h1 style="margin:0 0 6px 0; font-size:28px;">Steam Game Recommender</h1>
-      <p style="margin:0;">Paste your <b>SteamID64</b>, set the three weights, and get a <b>ranked</b> list of games.</p>
+      <h1 style="margin:0 0 6px 0; font-size:28px;">Video Game Recommender</h1>
+      <p style="margin:0;">Paste your <b>SteamID64</b>, set three weights, and get a <b>ranked</b> list of games.
+        <span style="display:block; font-size:13px; color:#a9d7c5; margin-top:4px;">
+          Steam is a popular PC gaming platform by Valve; this app uses Steam data to personalize picks.
+        </span>
+      </p>
     </section>
 
     <section class="card" style="margin-top:18px;">
@@ -83,7 +87,7 @@
           <label style="grid-column:1 / -1;">
             <div style="font-size:14px;">Friends’ similarity weight</div>
             <input id="wSocial" type="range" min="0" max="1" step="0.05" value="0.10" />
-            <div style="font-size:12px;color:#a9d7c5;">Value: <span id="wSocialVal">0.10</span> · Tip: if results look flat, tweak weights.</div>
+            <div style="font-size:12px;color:#a9d7c5;">Value: <span id="wSocialVal">0.10</span> · If results look flat, tweak weights.</div>
           </label>
         </div>
 
@@ -101,7 +105,7 @@
     <section class="card" style="margin-top:18px;">
       <h2 style="margin:0 0 6px 0; font-size:22px;">How it works</h2>
       <ul style="margin:0;">
-        <li>TF-IDF over top 20k games’ text (name/description/genres).</li>
+        <li>TF-IDF over top games’ name/description/genres.</li>
         <li>Pulls your + friends’ recent playtime via Steam Web API.</li>
         <li>Scores with weighted: content similarity, friends’ playtime, friends’ similarity.</li>
       </ul>
@@ -109,7 +113,7 @@
   </main>
 
   <footer style="color:#a9d7c5; text-align:center; font-size:12px; padding:36px 0 60px; border-top:2px solid #0a2e23; margin-top:28px;">
-    © <span id="y"></span> Modi Goldstein-Rosenfeld · Steam Recommender
+    © <span id="y"></span> Modi Goldstein-Rosenfeld · Video Game Recommender
   </footer>
 
   <script>
@@ -120,7 +124,6 @@
     const $=(s)=>document.querySelector(s);
     $('#y').textContent=new Date().getFullYear();
 
-    // Live labels
     $('#wContent').addEventListener('input', e=> $('#wContentVal').textContent=Number(e.target.value).toFixed(2));
     $('#wPlay').addEventListener('input',   e=> $('#wPlayVal').textContent  =Number(e.target.value).toFixed(2));
     $('#wSocial').addEventListener('input', e=> $('#wSocialVal').textContent=Number(e.target.value).toFixed(2));

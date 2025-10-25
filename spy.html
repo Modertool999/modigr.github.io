@@ -23,7 +23,8 @@
 
     .card { background:linear-gradient(180deg,#0f201a,#0b1713); border:1px solid var(--line); border-radius:14px; padding:18px; box-shadow: inset 0 1px 0 rgba(255,255,255,.03), 0 2px 0 #07140f; }
     .btn { display:inline-block; padding:10px 14px; background:linear-gradient(180deg,#1bb774,#0e7c51); color:#fff; border-radius:10px; border:1px solid #0a5a3a; box-shadow:inset 0 1px 0 #54e0a4, 0 2px 0 #073e2a; }
-    .btn:hover { filter:brightness(1.08); }
+    .btn[disabled]{ opacity:.55; cursor:not-allowed; }
+    .btn:hover:not([disabled]) { filter:brightness(1.08); }
     .btn-outline { display:inline-block; padding:10px 14px; border:1px solid var(--line); border-radius:10px; color:var(--ink); background:#0d1b16; }
     .btn-outline:hover { background:#0f201a; }
 
@@ -39,7 +40,7 @@
       <a class="brand" href="index.html">Modi Goldstein-Rosenfeld</a>
       <nav>
         <a href="index.html">Home</a>
-        <a href="steam.html">Steam</a>
+        <a href="steam.html">Video Game Recommender</a>
         <a class="active" href="spy.html">SPY</a>
         <a href="https://github.com/Modertool999/spy-forecast" target="_blank" rel="noopener">Repo ↗</a>
       </nav>
@@ -50,8 +51,8 @@
     <section class="card">
       <h1 style="margin:0 0 6px 0; font-size:28px;">S&amp;P 500 Next-Day Forecaster</h1>
       <p style="margin:0;">
-        Backtest a long-or-cash strategy from engineered price features. 
-        <b>Start</b> and <b>End</b> must be within <b>2019-01-01</b> to <b>2025-10-01</b> (API window).
+        Backtest a long-or-cash strategy from engineered price features.
+        <b>Start</b> and <b>End</b> must be within <b>2019-01-02</b> to <b>2025-10-01</b> (API window).
       </p>
     </section>
 
@@ -67,7 +68,7 @@
           <label>
             <div style="font-size:14px;">Start (YYYY-MM-DD)</div>
             <input id="startDate" type="text" pattern="^\\d{4}-\\d{2}-\\d{2}$" required />
-            <div style="font-size:12px;color:#a9d7c5;margin-top:6px;">Default: 2019-01-01</div>
+            <div style="font-size:12px;color:#a9d7c5;margin-top:6px;">Default: 2019-01-02</div>
           </label>
           <label>
             <div style="font-size:14px;">End (YYYY-MM-DD)</div>
@@ -75,7 +76,7 @@
             <div style="font-size:12px;color:#a9d7c5;margin-top:6px;">Default: 2025-10-01</div>
           </label>
           <div style="display:flex; align-items:flex-end; gap:12px;">
-            <button id="runBacktest" type="submit" class="btn">Run backtest</button>
+            <button id="runBacktest" type="submit" class="btn" disabled>Run backtest</button>
             <button id="resetBacktest" type="button" class="btn-outline">Reset</button>
           </div>
         </div>
@@ -111,14 +112,18 @@
     const CONFIG = {
       endpoints:{ spyForecast:'https://spy-forecast-modi-2-gka4h2cng6dhcvcf.westus-01.azurewebsites.net/api/spy-backtest' },
       requestTimeoutMs:20000,
-      minDate:'2019-01-01',
+      minDate:'2019-01-02',
       maxDate:'2025-10-01'
     };
     const $=(s)=>document.querySelector(s);
     $('#y').textContent=new Date().getFullYear();
 
-    // Required defaults inside API window
-    (function(){ $('#startDate').value=CONFIG.minDate; $('#endDate').value=CONFIG.maxDate; })();
+    // Prefill defaults and run validation once
+    (function(){
+      $('#startDate').value=CONFIG.minDate;
+      $('#endDate').value=CONFIG.maxDate;
+      validateForm(); // initialize button state
+    })();
 
     const setStatus=(m,ok=false)=>{ const el=$('#btStatus'); el.textContent=m||""; el.style.color= ok ? '#9ef5b2' : '#a9d7c5'; };
     const showAlert=(m)=>{ const a=$('#alert'); a.textContent=m; a.style.display='block'; };
@@ -126,6 +131,29 @@
     const fetchWithTimeout=(url,opt={},ms=15000)=>{ const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms); return fetch(url,{...opt,signal:c.signal}).finally(()=>clearTimeout(t)); };
     const isISO=(s)=>/^\d{4}-\d{2}-\d{2}$/.test(s);
     const withinWindow=(s)=>{ const d=new Date(s); return d>=new Date(CONFIG.minDate) && d<=new Date(CONFIG.maxDate); };
+
+    // Live validation that enables/disables the Run button
+    ['thr','startDate','endDate'].forEach(id => {
+      document.getElementById(id).addEventListener('input', validateForm);
+    });
+
+    function validateForm(){
+      hideAlert();
+      const thr=parseFloat($('#thr').value||'0.55');
+      const start=($('#startDate').value||'').trim();
+      const end=($('#endDate').value||'').trim();
+      let ok=true, msg=[];
+
+      if(!(thr>=0 && thr<=1)){ ok=false; msg.push('Threshold must be 0–1.'); }
+      if(!isISO(start) || !isISO(end)){ ok=false; msg.push('Start/End must be YYYY-MM-DD.'); }
+      if(isISO(start) && isISO(end) && new Date(start) > new Date(end)){ ok=false; msg.push('Start must be on or before End.'); }
+      if(isISO(start) && !withinWindow(start)){ ok=false; msg.push('Start must be within '+CONFIG.minDate+' to '+CONFIG.maxDate+'.'); }
+      if(isISO(end) && !withinWindow(end)){ ok=false; msg.push('End must be within '+CONFIG.minDate+' to '+CONFIG.maxDate+'.'); }
+
+      $('#runBacktest').disabled = !ok;
+      if(!ok) showAlert(msg.join(' ')); else hideAlert();
+      return ok;
+    }
 
     let chart;
     function ensureChart(){
@@ -143,38 +171,44 @@
     }
 
     async function runBacktest(){
-      hideAlert(); const btn=$('#runBacktest'); const ch=ensureChart();
+      if(!validateForm()) return; // guard (no backend call if invalid)
+
+      const btn=$('#runBacktest'); const ch=ensureChart();
       const thr=parseFloat($('#thr').value||'0.55');
       const start=($('#startDate').value||'').trim();
       const end=($('#endDate').value||'').trim();
 
-      if(!(thr>=0 && thr<=1)){ showAlert('Threshold must be 0–1.'); return; }
-      if(!isISO(start) || !isISO(end)){ showAlert('Start/End must be YYYY-MM-DD.'); return; }
-      if(new Date(start) > new Date(end)){ showAlert('Start must be on or before End.'); return; }
-      if(!withinWindow(start) || !withinWindow(end)){
-        showAlert('Dates must be within the API window: '+CONFIG.minDate+' to '+CONFIG.maxDate+'.'); return;
-      }
-      if(!CONFIG.endpoints.spyForecast){ showAlert('Backend endpoint not configured.'); return; }
-
       try{
         btn.disabled=true; setStatus('Running backtest…');
         const res=await fetchWithTimeout(CONFIG.endpoints.spyForecast,{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ threshold:thr, start, end }) }, CONFIG.requestTimeoutMs);
-        if(!res.ok){ const txt=await res.text(); throw new Error('HTTP '+res.status+': '+txt.slice(0,200)); }
+        if(!res.ok){
+          // Friendly message instead of surfacing backend 500 to the user
+          const txt=await res.text();
+          showAlert('Backtest failed. Please check the date window and try again. ('+('HTTP '+res.status)+')');
+          setStatus('');
+          return;
+        }
         const data=await res.json(); const eq=Array.isArray(data.equity)? data.equity:[]; if(eq.length===0){ setStatus('No equity data for that window.'); return; }
         ch.data.labels=eq.map((_,i)=>i); ch.data.datasets[0].data=eq; ch.update();
         const pct=(x)=> (Number(x)||0).toFixed(2);
-        $('#statTR').textContent=`${pct(data.total_ret)}%`; $('#statCAGR').textContent=`${pct(data.cagr)}%`;
-        $('#statSharpe').textContent= data.sharpe!=null? pct(data.sharpe):'—'; $('#statMDD').textContent= data.max_drawdown!=null? `${pct(data.max_drawdown)}%`:'—';
-        setStatus('Done.',true);
-      }catch(e){ if(e.name==='AbortError') showAlert('Request timed out. Please try again.'); else showAlert(e.message||'Request failed.'); setStatus(''); }
-      finally{ btn.disabled=false; }
+        document.getElementById('statTR').textContent   = `${pct(data.total_ret)}%`;
+        document.getElementById('statCAGR').textContent = `${pct(data.cagr)}%`;
+        document.getElementById('statSharpe').textContent = data.sharpe!=null? pct(data.sharpe) : '—';
+        document.getElementById('statMDD').textContent    = data.max_drawdown!=null? `${pct(data.max_drawdown)}%` : '—';
+        setStatus('Done.', true);
+      }catch(e){
+        if(e.name==='AbortError') showAlert('Request timed out. Try again.');
+        else showAlert(e.message || 'Request failed.');
+        setStatus('');
+      }finally{ btn.disabled=false; }
     }
 
     document.getElementById('spyForm').addEventListener('submit', (e)=>{ e.preventDefault(); runBacktest(); });
     document.getElementById('resetBacktest').addEventListener('click', ()=>{
-      hideAlert(); const ch=ensureChart(); ch.data.labels=[]; ch.data.datasets[0].data=[]; ch.update();
-      ['statTR','statCAGR','statSharpe','statMDD'].forEach(id=> $('#'+id).textContent='—'); setStatus('');
-      $('#startDate').value=CONFIG.minDate; $('#endDate').value=CONFIG.maxDate; $('#thr').value=0.55;
+      hideAlert(); const ch=ensureChart(); if(ch){ ch.data.labels=[]; ch.data.datasets[0].data=[]; ch.update(); }
+      ['statTR','statCAGR','statSharpe','statMDD'].forEach(id=> document.getElementById(id).textContent='—'); setStatus('');
+      document.getElementById('startDate').value=CONFIG.minDate; document.getElementById('endDate').value=CONFIG.maxDate; document.getElementById('thr').value=0.55;
+      validateForm();
     });
   </script>
 </body>
