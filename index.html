@@ -5,40 +5,53 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Modi Goldstein-Rosenfeld · Home</title>
   <meta name="color-scheme" content="dark" />
+  <!-- Comic Neue (mobile-safe Comic Sans vibe) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    :root { color-scheme: dark; --jets:#125740; --jets-dk:#0e4736; --ink:#e8f3ed; --panel:#0b1713; --line:#1a2b24; }
-    * { box-sizing:border-box; font-family:"Comic Sans MS","Comic Sans",cursive !important; }
-    body { margin:0; background:var(--panel); color:var(--ink); }
-    a { color:#8fe9b8; text-decoration:none; } a:hover{text-decoration:underline;}
-    .wrap { max-width:1040px; margin:0 auto; padding:0 16px; }
+    :root{
+      color-scheme: dark;
+      --jets:#125740;
+      --jets-dk:#0e4736;
+      --ink:#e8f3ed;
+      --panel:#0b1713;
+      --line:#1a2b24;
+      --ui-font:"Comic Sans MS","Comic Sans","Comic Neue",cursive;
+    }
+    *{ box-sizing:border-box; }
+    body, button, input, select, textarea{ font-family:var(--ui-font) !important; }
+    body{ margin:0; background:var(--panel); color:var(--ink); }
+    a{ color:#8fe9b8; text-decoration:none; } a:hover{text-decoration:underline;}
+    .wrap{ max-width:1040px; margin:0 auto; padding:0 16px; }
 
-    header { position:sticky; top:0; z-index:10; background:linear-gradient(180deg,rgba(18,87,64,.95),rgba(14,71,54,.92)); border-bottom:2px solid #0a2e23; box-shadow:0 2px 0 #062119; }
-    .row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; }
-    nav a { margin-left:16px; color:#c9f3e0; } nav a.active{ color:#fff; text-shadow:0 1px 0 #083326; }
+    header{ position:sticky; top:0; z-index:10; background:linear-gradient(180deg,rgba(18,87,64,.95),rgba(14,71,54,.92)); border-bottom:2px solid #0a2e23; box-shadow:0 2px 0 #062119; }
+    .row{ display:flex; align-items:center; justify-content:space-between; padding:10px 0; }
+    nav a{ margin-left:16px; color:#c9f3e0; } nav a.active{ color:#fff; text-shadow:0 1px 0 #083326; }
 
-    .brand { font-weight:800; letter-spacing:.3px; position:relative; display:inline-block; color:#fff; text-shadow:0 1px 0 #083326; }
+    .brand{ font-weight:800; letter-spacing:.3px; position:relative; display:inline-block; color:#fff; text-shadow:0 1px 0 #083326; }
     .brand::after{ content:""; position:absolute; left:0; bottom:-3px; height:3px; width:100%; background:linear-gradient(90deg,#87f6bf,#e4ffe4,#87f6bf); transform:scaleX(0); transform-origin:left; transition:transform .25s ease; }
     .brand:hover::after{ transform:scaleX(1); } .brand:hover{ transform:translateY(-1px) rotate(-.2deg); transition:transform .2s ease; }
 
-    .card { background:linear-gradient(180deg,#0f201a,#0b1713); border:1px solid var(--line); border-radius:14px; padding:18px; box-shadow: inset 0 1px 0 rgba(255,255,255,.03), 0 2px 0 #07140f; }
-    .btn { display:inline-block; padding:10px 14px; background:linear-gradient(180deg,#1bb774,#0e7c51); color:#fff; border-radius:10px; border:1px solid #0a5a3a; box-shadow:inset 0 1px 0 #54e0a4, 0 2px 0 #073e2a; }
-    .btn:hover { filter:brightness(1.08); }
-    .btn-outline { display:inline-block; padding:10px 14px; border:1px solid var(--line); border-radius:10px; color:var(--ink); background:#0d1b16; }
-    .btn-outline:hover { background:#0f201a; }
+    .card{ background:linear-gradient(180deg,#0f201a,#0b1713); border:1px solid var(--line); border-radius:14px; padding:18px; box-shadow:inset 0 1px 0 rgba(255,255,255,.03), 0 2px 0 #07140f; }
+    .btn{ display:inline-block; padding:10px 14px; background:linear-gradient(180deg,#1bb774,#0e7c51); color:#fff; border-radius:10px; border:1px solid #0a5a3a; box-shadow:inset 0 1px 0 #54e0a4, 0 2px 0 #073e2a; }
+    .btn:hover{ filter:brightness(1.08); }
+    .btn-outline{ display:inline-block; padding:10px 14px; border:1px solid var(--line); border-radius:10px; color:var(--ink); background:#0d1b16; }
+    .btn-outline:hover{ background:#0f201a; }
 
-    .grid { display:grid; gap:18px; }
-    @media(min-width: 980px){ .grid-2col { grid-template-columns: 3fr 2fr; } .grid-2 { grid-template-columns: 1fr 1fr; } }
+    .grid{ display:grid; gap:18px; }
+    @media(min-width:980px){ .grid-2col{ grid-template-columns:3fr 2fr; } .grid-2{ grid-template-columns:1fr 1fr; } }
 
     h1{ margin:0; font-size:40px; line-height:1.1; }
     h2{ margin:0 0 6px 0; font-size:26px; }
     h3{ margin:0 0 6px 0; font-size:18px; }
     p, li{ color:#d6efe4; }
     ul{ margin:8px 0 0 0; padding-left:20px; }
-    footer { color:#a9d7c5; text-align:center; font-size:12px; padding:36px 0 60px; border-top:2px solid #0a2e23; margin-top:28px; }
+    footer{ color:#a9d7c5; text-align:center; font-size:12px; padding:36px 0 60px; border-top:2px solid #0a2e23; margin-top:28px; }
 
-    .imgblock { border:1px solid var(--line); border-radius:14px; overflow:hidden; background:#09130f; margin-top:12px; }
-    .imgblock img { display:block; width:100%; height:auto; margin:0; }
-    .caption { font-size:12px; color:#a9d7c5; text-align:center; margin-top:6px; }
+    .imgblock{ border:1px solid var(--line); border-radius:14px; overflow:hidden; background:#09130f; margin-top:12px; }
+    .imgblock img{ display:block; width:100%; height:auto; margin:0; }
+    .caption{ font-size:12px; color:#a9d7c5; text-align:center; margin-top:6px; }
   </style>
 </head>
 <body>
@@ -55,40 +68,39 @@
   </header>
 
   <main class="wrap" style="padding-top:20px;">
-    <!-- Two-column hero: LEFT (headline + buttons + About), RIGHT (resume + image) -->
+    <!-- Left: headline/buttons/About · Right: resume card + image -->
     <section class="grid grid-2col" style="align-items:flex-start;">
       <!-- LEFT -->
       <div>
-        <h1>Hi! I'm Modi</h1>
+        <h1>I build focused ML/data projects with live demos.</h1>
         <p style="margin-top:10px; max-width:700px;">
-           I build focused ML/data projects with live demos. Also a big Jets fan.
+          End-to-end: data, modeling, APIs, and UI. Project pages include short write-ups and working demos.
         </p>
         <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
           <a class="btn" href="steam.html">Try Video Game Recommender</a>
           <a class="btn-outline" href="spy.html">Run SPY Backtest</a>
         </div>
 
-        <!-- About me stays on the LEFT -->
         <section style="margin-top:18px;">
           <div class="card">
             <h2>About me</h2>
             <div class="grid" style="margin-top:8px; gap:16px;">
               <div>
-                <h3>Research Interests</h3>
+                <h3>Research interests</h3>
                 <ul>
-                  <li>Programming Langauges</li>
-                  <li>Verified Numerics</li>
-                  <li>Machine Learning</li>
-                  <li>Optimization</li>
+                  <li>Designing a Julia-style language for fast matrix operations.</li>
+                  <li>Large experiments (5k–10k dims) with speed/accuracy/stability trade-offs.</li>
+                  <li>Recommendation systems that mix content and social signals.</li>
+                  <li>Practical time-series forecasting.</li>
                 </ul>
               </div>
               <div>
                 <h3>Engineering interests</h3>
                 <ul>
-                  <li>CI/CD</li>
-                  <li>Backend Development</li>
-                  <li>AI/ML Applications</li>
-                  <li>Freelance Programming</li>
+                  <li>Clean Python APIs (Flask/FastAPI) with clear errors and simple configs.</li>
+                  <li>Useful CI/CD: Actions checks, one-line setup, safe upgrades.</li>
+                  <li>Reproducible containers with traceable provenance.</li>
+                  <li>Data pipelines for scraping, cleaning, and standardization.</li>
                 </ul>
               </div>
               <div>
@@ -111,19 +123,18 @@
         <div class="card">
           <div style="color:#a9d7c5; font-size:13px;">Résumé</div>
           <div style="font-size:18px; font-weight:700; margin-top:2px;">Modi Goldstein-Rosenfeld</div>
-          <div style="color:#bfeada; font-size:14px;">Cornell CS '27</div>
+          <div style="color:#bfeada; font-size:14px;">ML & Data · Backend + Frontend</div>
           <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
             <a class="btn" href="./Modi_Goldstein-Rosenfeld_Resume.pdf" target="_blank" rel="noopener">Download PDF</a>
             <a class="btn-outline" href="#contact">Contact</a>
           </div>
         </div>
 
-        <!-- Chad image RIGHT under resume to fill that column -->
         <div class="imgblock">
           <img src="https://upload.wikimedia.org/wikipedia/commons/e/ed/ChadPennington1-crop.jpg"
                alt="Chad Pennington, Texans vs. Jets — Nov 26, 2006" />
         </div>
-        <div class="caption">Chad Pennington (not me lol), Texans vs. Jets - Nov 26, 2006 (public domain, via Wikimedia Commons)</div>
+        <div class="caption">Chad Pennington, Texans vs. Jets — Nov 26, 2006 (public domain, via Wikimedia Commons)</div>
       </div>
     </section>
 
@@ -134,27 +145,27 @@
         <a class="card" href="steam.html" style="display:block;">
           <div style="color:#a9d7c5; font-size:12px;">Flask · Steam Web API</div>
           <div style="font-size:20px; font-weight:700;">Video Game Recommender</div>
-          <p style="margin-top:6px;">TF-IDF + friends’ signals → ranked picks (uses Steam data)</p>
+          <p style="margin-top:6px;">TF-IDF + friends’ signals → ranked picks (uses Steam data).</p>
         </a>
         <a class="card" href="spy.html" style="display:block;">
           <div style="color:#a9d7c5; font-size:12px;">FastAPI · scikit-learn · yfinance</div>
           <div style="font-size:20px; font-weight:700;">S&amp;P 500 Next-Day Forecaster</div>
-          <p style="margin-top:6px;">Long-or-cash strategy with equity curve and stats</p>
+          <p style="margin-top:6px;">Long-or-cash strategy with equity curve and stats.</p>
         </a>
         <a class="card" href="https://github.com/Cornell-Fintech-Club/algo-oil" target="_blank" rel="noopener" style="display:block;">
           <div style="color:#a9d7c5; font-size:12px;">PyTorch · NLP</div>
           <div style="font-size:20px; font-weight:700;">Oil Trading Model</div>
-          <p style="margin-top:6px;">Sentiment pipeline using DistilRoBERTa over oil news</p>
+          <p style="margin-top:6px;">Sentiment pipeline using DistilRoBERTa over oil news.</p>
         </a>
         <a class="card" href="https://github.com/Modertool999/cli-subcommand-representation" target="_blank" rel="noopener" style="display:block;">
           <div style="color:#a9d7c5; font-size:12px;">Python · CLI</div>
           <div style="font-size:20px; font-weight:700;">CLI Sub-command Representation</div>
-          <p style="margin-top:6px;">Lightweight modeling of subcommand trees and flags</p>
+          <p style="margin-top:6px;">Lightweight modeling of command trees and flags.</p>
         </a>
       </div>
     </section>
 
-    <!-- Contact (centered) -->
+    <!-- Contact centered -->
     <section id="contact" style="margin-top:20px;">
       <div class="card" style="text-align:center;">
         <h2>Contact</h2>
@@ -167,7 +178,7 @@
   </main>
 
   <footer>
-    Made with love (and Azure) by Modi Goldstein-Rosenfeld
+    © <span id="y"></span> Modi Goldstein-Rosenfeld
   </footer>
 
   <script>document.getElementById('y').textContent=new Date().getFullYear();</script>

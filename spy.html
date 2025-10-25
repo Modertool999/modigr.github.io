@@ -6,34 +6,39 @@
   <title>SPY Forecaster · Modi</title>
   <meta name="color-scheme" content="dark" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+  <!-- Comic Neue (mobile-safe) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    :root { color-scheme: dark; --panel:#0b1713; --line:#1a2b24; --ink:#e8f3ed; }
-    * { box-sizing:border-box; font-family:"Comic Sans MS","Comic Sans",cursive !important; }
-    body { margin:0; background:var(--panel); color:var(--ink); }
-    a { color:#8fe9b8; } a:hover{text-decoration:underline;}
-    .wrap { max-width:1040px; margin:0 auto; padding:0 16px; }
+    :root{ color-scheme:dark; --panel:#0b1713; --line:#1a2b24; --ink:#e8f3ed; --ui-font:"Comic Sans MS","Comic Sans","Comic Neue",cursive; }
+    *{ box-sizing:border-box; }
+    body, button, input, select, textarea{ font-family:var(--ui-font) !important; }
+    body{ margin:0; background:var(--panel); color:var(--ink); }
+    a{ color:#8fe9b8; } a:hover{text-decoration:underline;}
+    .wrap{ max-width:1040px; margin:0 auto; padding:0 16px; }
 
-    header { position:sticky; top:0; z-index:10; background:linear-gradient(180deg,rgba(18,87,64,.95),rgba(14,71,54,.92)); border-bottom:2px solid #0a2e23; box-shadow:0 2px 0 #062119; }
-    .row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; }
-    nav a { margin-left:16px; color:#c9f3e0; } nav a.active { color:#fff; text-shadow:0 1px 0 #083326; }
+    header{ position:sticky; top:0; z-index:10; background:linear-gradient(180deg,rgba(18,87,64,.95),rgba(14,71,54,.92)); border-bottom:2px solid #0a2e23; box-shadow:0 2px 0 #062119; }
+    .row{ display:flex; align-items:center; justify-content:space-between; padding:10px 0; }
+    nav a{ margin-left:16px; color:#c9f3e0; } nav a.active{ color:#fff; text-shadow:0 1px 0 #083326; }
 
-    .brand { font-weight:800; letter-spacing:.3px; position:relative; display:inline-block; color:#fff; text-shadow:0 1px 0 #083326; }
+    .brand{ font-weight:800; letter-spacing:.3px; position:relative; display:inline-block; color:#fff; text-shadow:0 1px 0 #083326; }
     .brand::after{ content:""; position:absolute; left:0; bottom:-3px; height:3px; width:100%; background:linear-gradient(90deg,#87f6bf,#e4ffe4,#87f6bf); transform:scaleX(0); transform-origin:left; transition:transform .25s ease; }
     .brand:hover::after{ transform:scaleX(1); } .brand:hover{ transform: translateY(-1px) rotate(-.2deg); transition: transform .2s ease; }
 
-    .card { background:linear-gradient(180deg,#0f201a,#0b1713); border:1px solid var(--line); border-radius:14px; padding:18px; box-shadow: inset 0 1px 0 rgba(255,255,255,.03), 0 2px 0 #07140f; }
-    .btn { display:inline-block; padding:10px 14px; background:linear-gradient(180deg,#1bb774,#0e7c51); color:#fff; border-radius:10px; border:1px solid #0a5a3a; box-shadow:inset 0 1px 0 #54e0a4, 0 2px 0 #073e2a; }
+    .card{ background:linear-gradient(180deg,#0f201a,#0b1713); border:1px solid var(--line); border-radius:14px; padding:18px; box-shadow:inset 0 1px 0 rgba(255,255,255,.03), 0 2px 0 #07140f; }
+    .btn{ display:inline-block; padding:10px 14px; background:linear-gradient(180deg,#1bb774,#0e7c51); color:#fff; border-radius:10px; border:1px solid #0a5a3a; box-shadow:inset 0 1px 0 #54e0a4, 0 2px 0 #073e2a; }
     .btn[disabled]{ opacity:.55; cursor:not-allowed; }
-    .btn-outline { display:inline-block; padding:10px 14px; border:1px solid var(--line); border-radius:10px; color:var(--ink); background:#0d1b16; }
-    .btn-outline:hover { background:#0f201a; }
+    .btn-outline{ display:inline-block; padding:10px 14px; border:1px solid var(--line); border-radius:10px; color:var(--ink); background:#0d1b16; }
+    .btn-outline:hover{ background:#0f201a; }
 
     input[type="text"], input[type="number"]{ width:100%; padding:10px; border-radius:10px; border:1px solid var(--line); background:#0f1d18; color:#fff; }
 
-    .grid { display:grid; gap:16px; }
+    .grid{ display:grid; gap:16px; }
     @media(min-width:900px){ .grid-4{ grid-template-columns:1fr 1fr 1fr auto; } .grid-4>*{ min-width:0; } }
 
-    .note-red { margin:8px 0 0 0; font-size:13px; color:#ffb3b3; border-left:3px solid #ff6b6b; padding-left:10px; }
-    .alert { display:none; border:1px solid #742a2a; background:#2a1616; color:#ffd8d8; padding:10px 12px; border-radius:10px; margin-bottom:10px; }
+    .note-red{ margin:8px 0 0 0; font-size:13px; color:#ffb3b3; border-left:3px solid #ff6b6b; padding-left:10px; }
+    .alert{ display:none; border:1px solid #742a2a; background:#2a1616; color:#ffd8d8; padding:10px 12px; border-radius:10px; margin-bottom:10px; }
   </style>
 </head>
 <body>
@@ -57,8 +62,8 @@
         <b>Start</b> and <b>End</b> must be within <b>2019-01-02</b> to <b>2025-10-01</b> (API window).
       </p>
       <p class="note-red">
-        <b>Note:</b> This demo uses the free <code>yfinance</code> data source. Requests are rate-limited and availability may fluctuate
-        depending on user activity. If it errors or times out, please try again shortly—this is outside my control.
+        <b>Note:</b> This demo uses the free <code>yfinance</code> data source. Requests are rate-limited and availability may fluctuate with user activity.
+        If it errors or times out, please try again shortly — this is outside my control.
       </p>
     </section>
 
@@ -82,7 +87,6 @@
             <div style="font-size:12px;color:#a9d7c5;margin-top:6px;">Default: 2025-10-01</div>
           </label>
           <div style="display:flex; align-items:flex-end; gap:12px;">
-            <!-- changed to type="button" so clicks always fire -->
             <button id="runBacktest" type="button" class="btn">Run backtest</button>
             <button id="resetBacktest" type="button" class="btn-outline">Reset</button>
           </div>
@@ -139,10 +143,9 @@
     const isISO=(s)=>/^\d{4}-\d{2}-\d{2}$/.test(s);
     const withinWindow=(s)=>{ const d=new Date(s); return d>=new Date(CONFIG.minDate) && d<=new Date(CONFIG.maxDate); };
 
-    // Live validation and handlers
+    // Live validation + handlers
     ['thr','startDate','endDate'].forEach(id => document.getElementById(id).addEventListener('input', validateForm));
     document.getElementById('runBacktest').addEventListener('click', ()=> runBacktest());
-    // keep submit as backup (e.g., hitting Enter)
     document.getElementById('spyForm').addEventListener('submit', (e)=>{ e.preventDefault(); runBacktest(); });
 
     function validateForm(){
@@ -166,14 +169,14 @@
     let chart;
     function ensureChart(){
       if(chart) return chart;
-      var canvas=document.getElementById('equityChart'); if(!canvas){ console.error('Canvas missing'); return null; }
-      var ctx=canvas.getContext('2d');
-      var grad=ctx.createLinearGradient(0,0,0,200); grad.addColorStop(0,'rgba(27,183,116,0.28)'); grad.addColorStop(1,'rgba(27,183,116,0.00)');
+      const canvas=document.getElementById('equityChart'); if(!canvas){ console.error('Canvas missing'); return null; }
+      const ctx=canvas.getContext('2d');
+      const grad=ctx.createLinearGradient(0,0,0,200); grad.addColorStop(0,'rgba(27,183,116,0.28)'); grad.addColorStop(1,'rgba(27,183,116,0.00)');
       chart=new Chart(ctx,{ type:'line',
         data:{ labels:[], datasets:[{ label:'Equity (\u00D7)', data:[], borderColor:'#1bb774', backgroundColor:grad, fill:true, borderWidth:2, pointRadius:0, tension:0.18 }] },
         options:{ responsive:true, animation:{duration:220}, interaction:{mode:'index', intersect:false},
           scales:{ y:{ beginAtZero:false, grid:{ color:'rgba(255,255,255,.08)' }}, x:{ display:false }},
-          plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label:function(c){ var y=(c&&c.parsed&&typeof c.parsed.y==='number')?c.parsed.y:0; return '\u00D7 '+y.toFixed(3); } } } }
+          plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label:(c)=>'\u00D7 '+(c.parsed?.y??0).toFixed(3) } } }
       }});
       return chart;
     }
@@ -185,7 +188,7 @@
     }
 
     async function runBacktest(){
-      if(!validateForm()) return; // no call if invalid
+      if(!validateForm()) return;
       const btn=$('#runBacktest'); const ch=ensureChart();
       const thr=parseFloat($('#thr').value||'0.55');
       const start=($('#startDate').value||'').trim();
@@ -199,15 +202,14 @@
           body: JSON.stringify({ threshold:thr, start, end })
         }, CONFIG.requestTimeoutMs);
 
-        const txt=await res.text(); // read once for better messages
+        const txt=await res.text();
         if(!res.ok){
           if(looksRateLimited(res.status, txt)){
             showAlert('Backtest temporarily unavailable due to upstream data rate limits (free yfinance). Please try again in a minute.');
           }else{
             showAlert('Backtest failed. Please check the date window and try again. (HTTP '+res.status+')');
           }
-          setStatus('');
-          return;
+          setStatus(''); return;
         }
         const data=JSON.parse(txt);
         const eq=Array.isArray(data.equity)? data.equity:[];
