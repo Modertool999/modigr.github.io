@@ -24,13 +24,16 @@
     .card { background:linear-gradient(180deg,#0f201a,#0b1713); border:1px solid var(--line); border-radius:14px; padding:18px; box-shadow: inset 0 1px 0 rgba(255,255,255,.03), 0 2px 0 #07140f; }
     .btn { display:inline-block; padding:10px 14px; background:linear-gradient(180deg,#1bb774,#0e7c51); color:#fff; border-radius:10px; border:1px solid #0a5a3a; box-shadow:inset 0 1px 0 #54e0a4, 0 2px 0 #073e2a; }
     .btn[disabled]{ opacity:.55; cursor:not-allowed; }
-    .btn-outline { display:inline-block; padding:10px 14px; border:1px solid var(--line); border-radius:10px; color:ink; background:#0d1b16; }
+    .btn-outline { display:inline-block; padding:10px 14px; border:1px solid var(--line); border-radius:10px; color:var(--ink); background:#0d1b16; }
     .btn-outline:hover { background:#0f201a; }
 
     input[type="text"], input[type="number"]{ width:100%; padding:10px; border-radius:10px; border:1px solid var(--line); background:#0f1d18; color:#fff; }
 
     .grid { display:grid; gap:16px; }
     @media(min-width:900px){ .grid-4{ grid-template-columns:1fr 1fr 1fr auto; } .grid-4>*{ min-width:0; } }
+
+    .note-red { margin:8px 0 0 0; font-size:13px; color:#ffb3b3; border-left:3px solid #ff6b6b; padding-left:10px; }
+    .alert { display:none; border:1px solid #742a2a; background:#2a1616; color:#ffd8d8; padding:10px 12px; border-radius:10px; margin-bottom:10px; }
   </style>
 </head>
 <body>
@@ -53,14 +56,14 @@
         Backtest a long-or-cash strategy from engineered price features.
         <b>Start</b> and <b>End</b> must be within <b>2019-01-02</b> to <b>2025-10-01</b> (API window).
       </p>
-      <p style="margin:8px 0 0 0; font-size:13px; color:#a9d7c5;">
-        <b>Note:</b> This demo uses the free <code>yfinance</code> data source. Requests are rate-limited by Yahoo/rapid users, 
-        so availability may fluctuate and is outside my control. If it errors or times out, please try again shortly.
+      <p class="note-red">
+        <b>Note:</b> This demo uses the free <code>yfinance</code> data source. Requests are rate-limited and availability may fluctuate
+        depending on user activity. If it errors or times out, please try again shortly—this is outside my control.
       </p>
     </section>
 
     <section class="card" style="margin-top:18px;">
-      <div id="alert" style="display:none; border:1px solid #742a2a; background:#2a1616; color:#ffd8d8; padding:10px 12px; border-radius:10px; margin-bottom:10px;"></div>
+      <div id="alert" class="alert"></div>
 
       <form id="spyForm" novalidate>
         <div class="grid grid-4">
@@ -79,7 +82,8 @@
             <div style="font-size:12px;color:#a9d7c5;margin-top:6px;">Default: 2025-10-01</div>
           </label>
           <div style="display:flex; align-items:flex-end; gap:12px;">
-            <button id="runBacktest" type="submit" class="btn">Run backtest</button>
+            <!-- changed to type="button" so clicks always fire -->
+            <button id="runBacktest" type="button" class="btn">Run backtest</button>
             <button id="resetBacktest" type="button" class="btn-outline">Reset</button>
           </div>
         </div>
@@ -121,7 +125,7 @@
     const $=(s)=>document.querySelector(s);
     $('#y').textContent=new Date().getFullYear();
 
-    // Prefill defaults and validate once to set button state
+    // Prefill defaults and validate to set initial button state
     (function(){
       $('#startDate').value=CONFIG.minDate;
       $('#endDate').value=CONFIG.maxDate;
@@ -135,8 +139,11 @@
     const isISO=(s)=>/^\d{4}-\d{2}-\d{2}$/.test(s);
     const withinWindow=(s)=>{ const d=new Date(s); return d>=new Date(CONFIG.minDate) && d<=new Date(CONFIG.maxDate); };
 
-    // Live validation enabling/disabling the Run button
+    // Live validation and handlers
     ['thr','startDate','endDate'].forEach(id => document.getElementById(id).addEventListener('input', validateForm));
+    document.getElementById('runBacktest').addEventListener('click', ()=> runBacktest());
+    // keep submit as backup (e.g., hitting Enter)
+    document.getElementById('spyForm').addEventListener('submit', (e)=>{ e.preventDefault(); runBacktest(); });
 
     function validateForm(){
       hideAlert();
@@ -179,7 +186,6 @@
 
     async function runBacktest(){
       if(!validateForm()) return; // no call if invalid
-
       const btn=$('#runBacktest'); const ch=ensureChart();
       const thr=parseFloat($('#thr').value||'0.55');
       const start=($('#startDate').value||'').trim();
@@ -187,7 +193,12 @@
 
       try{
         btn.disabled=true; setStatus('Running backtest…');
-        const res=await fetchWithTimeout(CONFIG.endpoints.spyForecast,{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ threshold:thr, start, end }) }, CONFIG.requestTimeoutMs);
+        const res=await fetchWithTimeout(CONFIG.endpoints.spyForecast,{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ threshold:thr, start, end })
+        }, CONFIG.requestTimeoutMs);
+
         const txt=await res.text(); // read once for better messages
         if(!res.ok){
           if(looksRateLimited(res.status, txt)){
@@ -199,8 +210,13 @@
           return;
         }
         const data=JSON.parse(txt);
-        const eq=Array.isArray(data.equity)? data.equity:[]; if(eq.length===0){ setStatus('No equity data for that window.'); return; }
-        ch.data.labels=eq.map((_,i)=>i); ch.data.datasets[0].data=eq; ch.update();
+        const eq=Array.isArray(data.equity)? data.equity:[];
+        if(eq.length===0){ setStatus('No equity data for that window.'); return; }
+
+        ch.data.labels=eq.map((_,i)=>i);
+        ch.data.datasets[0].data=eq;
+        ch.update();
+
         const pct=(x)=> (Number(x)||0).toFixed(2);
         document.getElementById('statTR').textContent   = `${pct(data.total_ret)}%`;
         document.getElementById('statCAGR').textContent = `${pct(data.cagr)}%`;
@@ -213,14 +229,6 @@
         setStatus('');
       }finally{ btn.disabled=false; }
     }
-
-    document.getElementById('spyForm').addEventListener('submit', (e)=>{ e.preventDefault(); runBacktest(); });
-    document.getElementById('resetBacktest').addEventListener('click', ()=>{
-      hideAlert(); const ch=ensureChart(); if(ch){ ch.data.labels=[]; ch.data.datasets[0].data=[]; ch.update(); }
-      ['statTR','statCAGR','statSharpe','statMDD'].forEach(id=> document.getElementById(id).textContent='—'); setStatus('');
-      document.getElementById('startDate').value=CONFIG.minDate; document.getElementById('endDate').value=CONFIG.maxDate; document.getElementById('thr').value=0.55;
-      validateForm();
-    });
   </script>
 </body>
 </html>
