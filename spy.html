@@ -53,6 +53,10 @@
         Backtest a long-or-cash strategy from engineered price features.
         <b>Start</b> and <b>End</b> must be within <b>2019-01-02</b> to <b>2025-10-01</b> (API window).
       </p>
+      <p style="margin:8px 0 0 0; font-size:13px; color:#a9d7c5;">
+        <b>Note:</b> This demo uses the free <code>yfinance</code> data source. Requests are rate-limited by Yahoo/rapid users, 
+        so availability may fluctuate and is outside my control. If it errors or times out, please try again shortly.
+      </p>
     </section>
 
     <section class="card" style="margin-top:18px;">
@@ -117,13 +121,12 @@
     const $=(s)=>document.querySelector(s);
     $('#y').textContent=new Date().getFullYear();
 
-    // Fill defaults, then validate to set button state
-    function initDefaults(){
+    // Prefill defaults and validate once to set button state
+    (function(){
       $('#startDate').value=CONFIG.minDate;
       $('#endDate').value=CONFIG.maxDate;
       validateForm();
-    }
-    document.addEventListener('DOMContentLoaded', initDefaults);
+    })();
 
     const setStatus=(m,ok=false)=>{ const el=$('#btStatus'); el.textContent=m||""; el.style.color= ok ? '#9ef5b2' : '#a9d7c5'; };
     const showAlert=(m)=>{ const a=$('#alert'); a.textContent=m; a.style.display='block'; };
@@ -132,6 +135,7 @@
     const isISO=(s)=>/^\d{4}-\d{2}-\d{2}$/.test(s);
     const withinWindow=(s)=>{ const d=new Date(s); return d>=new Date(CONFIG.minDate) && d<=new Date(CONFIG.maxDate); };
 
+    // Live validation enabling/disabling the Run button
     ['thr','startDate','endDate'].forEach(id => document.getElementById(id).addEventListener('input', validateForm));
 
     function validateForm(){
@@ -167,6 +171,12 @@
       return chart;
     }
 
+    function looksRateLimited(status, txt){
+      if(status===429 || status===503 || status===502) return true;
+      if(typeof txt==='string' && /rate limit|too many requests|temporar/i.test(txt)) return true;
+      return false;
+    }
+
     async function runBacktest(){
       if(!validateForm()) return; // no call if invalid
 
@@ -178,13 +188,18 @@
       try{
         btn.disabled=true; setStatus('Running backtest…');
         const res=await fetchWithTimeout(CONFIG.endpoints.spyForecast,{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ threshold:thr, start, end }) }, CONFIG.requestTimeoutMs);
+        const txt=await res.text(); // read once for better messages
         if(!res.ok){
-          await res.text(); // consume for debugging if needed
-          showAlert('Backtest failed. Please check the date window and try again. (HTTP '+res.status+')');
+          if(looksRateLimited(res.status, txt)){
+            showAlert('Backtest temporarily unavailable due to upstream data rate limits (free yfinance). Please try again in a minute.');
+          }else{
+            showAlert('Backtest failed. Please check the date window and try again. (HTTP '+res.status+')');
+          }
           setStatus('');
           return;
         }
-        const data=await res.json(); const eq=Array.isArray(data.equity)? data.equity:[]; if(eq.length===0){ setStatus('No equity data for that window.'); return; }
+        const data=JSON.parse(txt);
+        const eq=Array.isArray(data.equity)? data.equity:[]; if(eq.length===0){ setStatus('No equity data for that window.'); return; }
         ch.data.labels=eq.map((_,i)=>i); ch.data.datasets[0].data=eq; ch.update();
         const pct=(x)=> (Number(x)||0).toFixed(2);
         document.getElementById('statTR').textContent   = `${pct(data.total_ret)}%`;
