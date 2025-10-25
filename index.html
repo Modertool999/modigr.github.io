@@ -1,265 +1,229 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Modi Goldstein‑Rosenfeld — Portfolio</title>
-  <meta name="description" content="Projects by Modi Goldstein‑Rosenfeld: ML, systems, and data—built simply and shipped." />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
-  <!-- Tailwind via CDN -->
+  <title>Modi Goldstein‑Rosenfeld — Projects</title>
+  <!-- Tailwind CDN (no build step) -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Chart.js for tiny demos -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Chart.js for the SPY equity curve -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+  <meta name="color-scheme" content="light dark" />
   <style>
-    :root { color-scheme: light dark; }
-    html { scroll-behavior: smooth; }
-    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; }
+    /* Hide default spinners for number input on WebKit */
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   </style>
 </head>
-<body class="bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
-  <!-- Header -->
-  <header class="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-zinc-950/60 border-b border-zinc-200/70 dark:border-zinc-800">
-    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-      <a href="#top" class="font-extrabold tracking-tight text-lg">Modi G‑R</a>
-      <nav class="flex items-center gap-4 text-sm">
-        <a href="#projects" class="hover:underline">Projects</a>
-        <a href="#about" class="hover:underline">About</a>
-        <a href="#contact" class="hover:underline">Contact</a>
-        <button id="themeToggle" class="rounded-xl px-3 py-1.5 border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-900">Toggle</button>
-      </nav>
-    </div>
-  </header>
-
-  <!-- Hero -->
-  <main id="top" class="max-w-4xl mx-auto px-4">
-    <section class="py-12 sm:py-16">
-      <h1 class="text-3xl sm:text-5xl font-extrabold leading-tight">Hi, I’m <span class="bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">Modi Goldstein‑Rosenfeld</span>.</h1>
-      <p class="mt-4 text-lg text-zinc-600 dark:text-zinc-300 max-w-2xl">Cornell CS ’27 (AI minor). I build practical ML and automation—then ship it. Below are <em>clickable, runnable</em> micro‑demos of my projects plus links to the full repos.</p>
-      <div class="mt-6 flex flex-wrap gap-3">
-        <a class="inline-flex items-center gap-2 rounded-xl px-4 py-2 bg-zinc-900 text-white dark:bg-white dark:text-zinc-900" href="https://github.com/modertool999" target="_blank" rel="noopener">GitHub ↗</a>
-        <a class="inline-flex items-center gap-2 rounded-xl px-4 py-2 border border-zinc-300 dark:border-zinc-700" href="#projects">See Projects ↓</a>
-        <!-- Replace the href below with the actual file path in your repo, e.g., /assets/Modi_Goldstein-Rosenfeld_Resume.pdf -->
-        <a class="inline-flex items-center gap-2 rounded-xl px-4 py-2 border border-blue-300 text-blue-700 dark:border-blue-900/50 dark:text-blue-300" href="assets/Modi_Goldstein-Rosenfeld_Resume.pdf" target="_blank" rel="noopener">Download Resume</a>
+<body class="bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+  <main class="max-w-5xl mx-auto px-4 py-8">
+    <header class="mb-8">
+      <h1 class="text-3xl font-bold tracking-tight">Modi Goldstein‑Rosenfeld</h1>
+      <p class="text-zinc-600 dark:text-zinc-400">I build data‑driven tools. These two recent projects call my live backends.</p>
+      <div class="text-sm mt-2 flex gap-4">
+        <a class="underline" href="https://github.com/Modertool999/game-recommender" target="_blank" rel="noopener">Steam Game Recommender (repo)</a>
+        <a class="underline" href="https://github.com/Modertool999/spy-forecast" target="_blank" rel="noopener">SPY Forecaster (repo)</a>
       </div>
+    </header>
+
+    <!-- Config Block: paste your live API URLs here -->
+    <script>
+      const CONFIG = {
+        endpoints: {
+          // Replace these with your live URLs when ready:
+          steamRec: 'https://steam-rec-modi-2-gdefgecbdah9hqfx.westus-01.azurewebsites.net/api/recommend',
+          spyForecast: 'https://spy-forecast-modi-2-gka4h2cng6dhcvcf.westus-01.azurewebsites.net/api/spy-backtest'
+        },
+        requestTimeoutMs: 20000
+      };
+    </script>
+
+    <section class="space-y-6">
+      <h2 class="text-2xl font-semibold">Recent Projects — live</h2>
+
+      <!-- Steam Game Recommender Card -->
+      <article class="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 bg-white/70 dark:bg-zinc-900/40 backdrop-blur">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h3 class="text-xl font-semibold">Steam Game Recommender</h3>
+            <p class="text-sm text-zinc-600 dark:text-zinc-400">Content‑based TF‑IDF + social playtime (Steam Web API). Enter a SteamID64 to get personalized recs.</p>
+          </div>
+          <a class="text-sm underline" href="https://github.com/Modertool999/game-recommender" target="_blank" rel="noopener">Repo ↗</a>
+        </div>
+
+        <div class="mt-4 grid gap-3 sm:grid-cols-3">
+          <label class="text-sm">SteamID64
+            <input id="steamId" class="mt-1 w-full rounded-xl border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-2" placeholder="7656119XXXXXXXXXX" />
+          </label>
+          <label class="text-sm">Content weight (TF‑IDF)
+            <input id="wContent" type="range" min="0" max="1" step="0.05" value="0.6" class="mt-3 w-full" />
+          </label>
+          <label class="text-sm">Playtime weight
+            <input id="wPlay" type="range" min="0" max="1" step="0.05" value="0.4" class="mt-3 w-full" />
+          </label>
+        </div>
+
+        <div class="mt-3 flex flex-wrap items-center gap-3">
+          <button id="recBtn" class="rounded-lg px-3 py-1.5 bg-zinc-900 text-white dark:bg-white dark:text-zinc-900">Recommend</button>
+          <button id="recReset" class="rounded-lg px-3 py-1.5 border border-zinc-300 dark:border-zinc-700">Reset</button>
+          <span id="recStatus" class="text-xs text-zinc-500"></span>
+        </div>
+        <ul id="recList" class="mt-3 text-sm list-disc pl-5 space-y-1"></ul>
+      </article>
+
+      <!-- SPY Forecaster Card -->
+      <article class="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 bg-white/70 dark:bg-zinc-900/40 backdrop-blur">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h3 class="text-xl font-semibold">S&P 500 Next‑Day Forecaster</h3>
+            <p class="text-sm text-zinc-600 dark:text-zinc-400">Logistic regression long‑or‑cash strategy. Runs my backtest and returns an equity curve.</p>
+          </div>
+          <a class="text-sm underline" href="https://github.com/Modertool999/spy-forecast" target="_blank" rel="noopener">Repo ↗</a>
+        </div>
+
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <label class="text-sm flex items-center gap-2">Threshold
+            <input id="thr" type="number" step="0.01" value="0.55" class="rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent px-2 py-1 w-24" />
+          </label>
+          <label class="text-sm hidden sm:flex items-center gap-2">Start (YYYY-MM-DD)
+            <input id="startDate" type="text" placeholder="optional" class="rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent px-2 py-1 w-36" />
+          </label>
+          <label class="text-sm hidden sm:flex items-center gap-2">End
+            <input id="endDate" type="text" placeholder="optional" class="rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent px-2 py-1 w-36" />
+          </label>
+          <button id="runBacktest" class="rounded-lg px-3 py-1.5 bg-zinc-900 text-white dark:bg-white dark:text-zinc-900">Run backtest</button>
+          <button id="resetBacktest" class="rounded-lg px-3 py-1.5 border border-zinc-300 dark:border-zinc-700">Reset</button>
+          <span id="btStatus" class="text-xs text-zinc-500"></span>
+        </div>
+
+        <div class="mt-4">
+          <canvas id="equityChart" height="120"></canvas>
+        </div>
+        <p id="btStats" class="text-sm text-zinc-700 dark:text-zinc-300 mt-2"></p>
+      </article>
+
+      <!-- More projects (static links) -->
+      <article class="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5">
+        <h3 class="text-lg font-semibold">More projects</h3>
+        <ul class="list-disc pl-5 text-sm mt-2 space-y-1">
+          <li><a class="underline" href="https://github.com/Cornell-Fintech-Club/algo-oil" target="_blank" rel="noopener">Oil Trading Model (Cornell FinTech Club)</a> — headline sentiment → signal (code + write‑up).</li>
+        </ul>
+      </article>
     </section>
-
-    <!-- Projects -->
-    <section id="projects" class="py-8">
-      <h2 class="text-2xl font-bold">Projects — with tiny live demos</h2>
-      <p class="text-zinc-600 dark:text-zinc-300 mt-1">Each card links to the repo and includes a lightweight in‑browser interaction to showcase the core idea.</p>
-
-      <div class="mt-6 grid md:grid-cols-2 gap-6">
-        <!-- S&P Forecaster -->
-        <article class="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5">
-          <div class="flex items-start justify-between gap-3">
-            <div>
-              <h3 class="font-semibold text-lg">S&P 500 Next‑Day Direction Forecaster</h3>
-              <p class="text-sm text-zinc-600 dark:text-zinc-400">Python, scikit‑learn, pandas • Backtested long/cash strategy over 4k+ trading days</p>
-            </div>
-            <a class="text-sm underline" href="https://github.com/Modertool999/spy-forecast" target="_blank" rel="noopener">Repo ↗</a>
-          </div>
-          <div class="mt-4 space-y-3">
-            <canvas id="equityChart" height="140" class="w-full rounded-lg bg-zinc-50 dark:bg-zinc-900 p-2"></canvas>
-            <div class="flex flex-wrap gap-2">
-              <button id="runBacktest" class="rounded-lg px-3 py-1.5 bg-zinc-900 text-white dark:bg-white dark:text-zinc-900">Run backtest</button>
-              <button id="resetBacktest" class="rounded-lg px-3 py-1.5 border border-zinc-300 dark:border-zinc-700">Reset</button>
-            </div>
-            <p id="btStats" class="text-sm text-zinc-700 dark:text-zinc-300"></p>
-          </div>
-        </article>
-
-        <!-- Steam Recommender -->
-        <article class="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5">
-          <div class="flex items-start justify-between gap-3">
-            <div>
-              <h3 class="font-semibold text-lg">Steam Game Recommender</h3>
-              <p class="text-sm text-zinc-600 dark:text-zinc-400">Python, Flask, SQLite • TF‑IDF + playtime hybrid on 20k+ games</p>
-            </div>
-            <a class="text-sm underline" href="https://github.com/Modertool999/game-recommender" target="_blank" rel="noopener">Repo ↗</a>
-          </div>
-          <div class="mt-4 space-y-3">
-            <label class="text-sm" for="seedGame">Type a game you like:</label>
-            <input id="seedGame" class="w-full rounded-xl border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-2" placeholder="e.g., Portal 2" />
-            <button id="recBtn" class="rounded-lg px-3 py-1.5 bg-zinc-900 text-white dark:bg-white dark:text-zinc-900">Recommend</button>
-            <ul id="recList" class="text-sm list-disc pl-5 space-y-1"></ul>
-          </div>
-        </article>
-
-        <!-- Oil Trading Sentiment -->
-        <article class="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5">
-          <div class="flex items-start justify-between gap-3">
-            <div>
-              <h3 class="font-semibold text-lg">Oil Trading Model (Cornell FinTech Club)</h3>
-              <p class="text-sm text-zinc-600 dark:text-zinc-400">DistilRoBERTa headline sentiment → trading signal</p>
-            </div>
-            <a class="text-sm underline" href="https://github.com/Cornell-Fintech-Club/algo-oil" target="_blank" rel="noopener">Repo ↗</a>
-          </div>
-          <div class="mt-4 space-y-3">
-            <label class="text-sm" for="headline">Paste a headline:</label>
-            <textarea id="headline" rows="3" class="w-full rounded-xl border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-2" placeholder="OPEC surprises markets with unexpected production cut..."></textarea>
-            <div class="flex flex-wrap gap-2">
-              <button id="classifyBtn" class="rounded-lg px-3 py-1.5 bg-zinc-900 text-white dark:bg-white dark:text-zinc-900">Classify sentiment</button>
-              <span id="sentimentOut" class="text-sm font-medium"></span>
-            </div>
-          </div>
-        </article>
-
-        <!-- Ticket Relisting Automation (extra demo) -->
-        <article class="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5">
-          <div class="flex items-start justify-between gap-3">
-            <div>
-              <h3 class="font-semibold text-lg">Ticket Relisting Automation</h3>
-              <p class="text-sm text-zinc-600 dark:text-zinc-400">Python + Selenium • Dynamic pricing & scheduled uploads</p>
-            </div>
-          </div>
-          <div class="mt-4 space-y-3">
-            <p class="text-sm">Toy demo: adjust base price + demand, see suggested relist price.</p>
-            <div class="grid grid-cols-2 gap-3 text-sm">
-              <label class="flex flex-col">Base $ <input id="basePrice" type="number" value="50" class="mt-1 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-2"></label>
-              <label class="flex flex-col">Demand (0–1) <input id="demand" type="number" value="0.6" step="0.05" min="0" max="1" class="mt-1 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-2"></label>
-            </div>
-            <button id="priceBtn" class="rounded-lg px-3 py-1.5 bg-zinc-900 text-white dark:bg-white dark:text-zinc-900">Suggest price</button>
-            <p id="priceOut" class="text-sm font-medium"></p>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <!-- About -->
-    <section id="about" class="py-12">
-      <h2 class="text-2xl font-bold">About</h2>
-      <p class="mt-3 text-zinc-700 dark:text-zinc-300 max-w-2xl">I’m a junior at Cornell (CS + AI minor). Recent work: security automation at Scribe, verified numerics research in Julia, and practical ML projects. I like turning researchy ideas into shippable tools and dashboards.</p>
-      <ul class="mt-3 text-sm text-zinc-600 dark:text-zinc-400 list-disc pl-5">
-        <li>Languages: Python, JavaScript/TypeScript, Java, SQL, OCaml, Bash, HTML/CSS</li>
-        <li>Frameworks: PyTorch, TensorFlow, scikit‑learn, Flask, pandas, NumPy</li>
-        <li>Tools: Git, Docker, GitHub Actions, Jenkins, PostgreSQL, SQLite</li>
-      </ul>
-    </section>
-
-    <!-- Contact -->
-    <section id="contact" class="py-12 border-t border-zinc-200 dark:border-zinc-800">
-      <h2 class="text-2xl font-bold">Contact</h2>
-      <p class="mt-2 text-zinc-700 dark:text-zinc-300">Email: <a class="underline" href="mailto:modigr4@gmail.com">modigr4@gmail.com</a> · LinkedIn: <a class="underline" href="https://linkedin.com/in/modigr" target="_blank" rel="noopener">@modigr</a> · GitHub: <a class="underline" href="https://github.com/modertool999" target="_blank" rel="noopener">@modertool999</a></p>
-    </section>
-
-    <footer class="pb-16 text-xs text-zinc-500">© <span id="year"></span> Modi Goldstein‑Rosenfeld</footer>
   </main>
 
   <script>
-    // Theme toggle with localStorage
-    const themeBtn = document.getElementById('themeToggle');
-    const root = document.documentElement;
-    const stored = localStorage.getItem('theme');
-    if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      document.documentElement.classList.add('dark');
-    }
-    themeBtn.addEventListener('click', () => {
-      document.documentElement.classList.toggle('dark');
-      localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-    });
-    document.getElementById('year').textContent = new Date().getFullYear();
+    // ---------- Helpers ----------
+    const qs = (sel) => document.querySelector(sel);
+    function setStatus(el, msg, ok=false){ el.textContent = msg; el.className = `text-xs ${ok? 'text-green-600 dark:text-green-400':'text-zinc-500'}`; }
+    function isSteam64(s){ return /^7656119\d{10}$/.test(s); }
 
-    // --- S&P Forecaster Tiny Backtest Demo ---
-    // Toy data: 200 days of daily returns (random-ish) and a simple moving-average crossover signal
-    const returns = Array.from({length: 200}, (_, i) => (Math.sin(i/9) + Math.cos(i/17)) * 0.002 + (Math.random()-0.5)*0.002);
-    let equitySeries = [1];
-    const ctx = document.getElementById('equityChart').getContext('2d');
-    const chart = new Chart(ctx, {
-      type: 'line',
-      data: { labels: returns.map((_, i) => i+1), datasets: [{ label: 'Equity Curve (toy)', data: equitySeries, borderWidth: 2 }]},
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { ticks: { callback: v => '$' + v.toFixed(2) }}}}
-    });
-
-    function sma(arr, w, i) {
-      if (i < w) return null; let s = 0; for (let k=i-w; k<i; k++) s += arr[k]; return s / w;
+    function fetchWithTimeout(url, options={}, timeoutMs=15000){
+      const controller = new AbortController();
+      const id = setTimeout(()=>controller.abort(), timeoutMs);
+      return fetch(url, {...options, signal: controller.signal}).finally(()=>clearTimeout(id));
     }
 
-    function runBacktest() {
-      let cash = 1, pos = 0; // long/cash
-      const shortW = 5, longW = 20; equitySeries = [1];
-      for (let i=1; i<returns.length; i++) {
-        const s = sma(returns, shortW, i), l = sma(returns, longW, i);
-        if (s !== null && l !== null) pos = s > l ? 1 : 0; // in market or in cash
-        cash *= (1 + pos * returns[i]);
-        equitySeries.push(cash);
-      }
-      chart.data.datasets[0].data = equitySeries;
-      chart.update();
-      const totalRet = (cash - 1) * 100;
-      const cagr = (Math.pow(cash, 252/returns.length) - 1) * 100;
-      document.getElementById('btStats').textContent = `Total return: ${totalRet.toFixed(1)}% · Annualized (toy): ${cagr.toFixed(1)}%`;
-    }
-
-    function resetBacktest() {
-      equitySeries = [1];
-      chart.data.datasets[0].data = equitySeries;
-      chart.update();
-      document.getElementById('btStats').textContent = '';
-    }
-
-    document.getElementById('runBacktest').addEventListener('click', runBacktest);
-    document.getElementById('resetBacktest').addEventListener('click', resetBacktest);
-
-    // --- Steam Recommender Micro Demo ---
-    const sampleGames = [
-      { title: 'Portal 2', tags: ['puzzle','co-op','first-person','physics'] },
-      { title: 'Hades', tags: ['roguelike','action','isometric','mythology'] },
-      { title: 'Stardew Valley', tags: ['farming','cozy','pixel','rpg'] },
-      { title: 'Celeste', tags: ['platformer','precision','pixel','story-rich'] },
-      { title: 'Factorio', tags: ['automation','factory','top-down','complex'] },
-      { title: 'Slay the Spire', tags: ['deckbuilder','strategy','roguelike'] },
-      { title: 'Elden Ring', tags: ['soulslike','open-world','action','rpg'] },
-      { title: 'The Witcher 3', tags: ['open-world','story-rich','rpg'] },
-      { title: 'Overcooked! 2', tags: ['co-op','party','cooking'] },
-      { title: 'Terraria', tags: ['sandbox','2d','crafting','exploration'] },
-    ];
-
-    function jaccard(a, b) {
-      const A = new Set(a), B = new Set(b);
-      const inter = [...A].filter(x => B.has(x)).length;
-      const uni = new Set([...A, ...B]).size;
-      return inter / uni;
-    }
-
-    document.getElementById('recBtn').addEventListener('click', () => {
-      const q = document.getElementById('seedGame').value.trim().toLowerCase();
-      const seed = sampleGames.find(g => g.title.toLowerCase() === q) || sampleGames.find(g => g.title.toLowerCase().includes(q));
-      const list = document.getElementById('recList');
+    // ---------- Steam Recommender ----------
+    qs('#recBtn').addEventListener('click', async () => {
+      const steamId = (qs('#steamId').value || '').trim();
+      const wContent = parseFloat(qs('#wContent').value || '0.6');
+      const wPlay = parseFloat(qs('#wPlay').value || '0.4');
+      const status = qs('#recStatus');
+      const list = qs('#recList');
       list.innerHTML = '';
-      if (!seed) { list.innerHTML = '<li>No match in demo dataset. Try: Portal 2, Hades, Celeste…</li>'; return; }
-      const scored = sampleGames
-        .filter(g => g.title !== seed.title)
-        .map(g => ({ ...g, score: jaccard(seed.tags, g.tags) }))
-        .sort((a,b) => b.score - a.score)
-        .slice(0,5);
-      scored.forEach(g => {
-        const li = document.createElement('li');
-        li.textContent = `${g.title} — similarity ${(g.score*100).toFixed(0)}%`;
-        list.appendChild(li);
+
+      if (!CONFIG.endpoints.steamRec){ setStatus(status, 'Not configured.'); return; }
+      if (!isSteam64(steamId)){ setStatus(status, 'Enter a valid SteamID64 (17 digits starting 7656119).'); return; }
+
+      try {
+        setStatus(status, 'Calling backend…');
+        const u = new URL(CONFIG.endpoints.steamRec);
+        u.searchParams.set('steam_id', steamId);
+        u.searchParams.set('k', 10);
+        u.searchParams.set('w_content', wContent);
+        u.searchParams.set('w_playtime', wPlay);
+        const res = await fetchWithTimeout(u.toString(), { method: 'GET' }, CONFIG.requestTimeoutMs);
+        if (!res.ok) {
+          const txt = await res.text();
+          throw new Error(`HTTP ${res.status}: ${txt.slice(0,140)}`);
+        }
+        const data = await res.json();
+        if (!Array.isArray(data) || data.length===0){ setStatus(status, 'No recommendations (check privacy settings or recent playtime).'); return; }
+        data.slice(0,10).forEach(r => {
+          const li = document.createElement('li');
+          const score = (typeof r.score === 'number') ? ` — score ${(r.score*100).toFixed(0)}%` : '';
+          li.textContent = `${r.title}${score}`;
+          list.appendChild(li);
+        });
+        setStatus(status, 'Done.', true);
+      } catch (e){
+        console.error(e);
+        setStatus(status, `Error: ${e.message || e}`, false);
+      }
+    });
+    qs('#recReset').addEventListener('click', ()=>{ qs('#steamId').value=''; qs('#recList').innerHTML=''; qs('#recStatus').textContent=''; });
+
+    // ---------- SPY Forecaster ----------
+    let chart;
+    function ensureChart(){
+      if (chart) return chart;
+      const ctx = document.getElementById('equityChart').getContext('2d');
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: { labels: [], datasets: [{ label: 'Equity (×)', data: [], borderWidth: 2, pointRadius: 0, tension: 0.15 }] },
+        options: {
+          responsive: true,
+          animation: false,
+          scales: { y: { beginAtZero: false } },
+          plugins: { legend: { display: false } }
+        }
       });
-    });
-
-    // --- Oil headline sentiment (rule‑based toy proxy) ---
-    const posWords = ['surge', 'rise', 'boost', 'cut', 'strong', 'bullish'];
-    const negWords = ['fall', 'drop', 'slump', 'glut', 'oversupply', 'bearish'];
-    function sentiment(text) {
-      const t = text.toLowerCase();
-      let score = 0; posWords.forEach(w => { if (t.includes(w)) score += 1; }); negWords.forEach(w => { if (t.includes(w)) score -= 1; });
-      return score > 0 ? 'Positive' : score < 0 ? 'Negative' : 'Neutral';
+      return chart;
     }
-    document.getElementById('classifyBtn').addEventListener('click', () => {
-      const s = sentiment(document.getElementById('headline').value || '');
-      document.getElementById('sentimentOut').textContent = `Sentiment: ${s} (demo)`;
-    });
 
-    // Ticket pricing toy rule
-    document.getElementById('priceBtn').addEventListener('click', () => {
-      const base = parseFloat(document.getElementById('basePrice').value || '0');
-      const demand = Math.min(1, Math.max(0, parseFloat(document.getElementById('demand').value || '0')));
-      const suggested = Math.max(5, base * (0.8 + demand * 0.7));
-      document.getElementById('priceOut').textContent = `Suggested relist: $${suggested.toFixed(2)}`;
+    async function runBacktest(){
+      const status = qs('#btStatus');
+      const stats = qs('#btStats');
+      const thr = parseFloat(qs('#thr').value || '0.55');
+      const start = (qs('#startDate').value || '').trim() || null;
+      const end = (qs('#endDate').value || '').trim() || null;
+      stats.textContent = '';
+      const ch = ensureChart();
+
+      if (!CONFIG.endpoints.spyForecast){ setStatus(status, 'Not configured.'); return; }
+      try {
+        setStatus(status, 'Running backtest…');
+        const body = { threshold: thr };
+        if (start) body.start = start; if (end) body.end = end;
+        const res = await fetchWithTimeout(CONFIG.endpoints.spyForecast, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+        }, CONFIG.requestTimeoutMs);
+        if (!res.ok){ const txt=await res.text(); throw new Error(`HTTP ${res.status}: ${txt.slice(0,140)}`); }
+        const data = await res.json();
+        const eq = Array.isArray(data.equity) ? data.equity : [];
+        if (eq.length === 0){ setStatus(status, 'No equity data returned.'); return; }
+        ch.data.labels = eq.map((_,i)=>i);
+        ch.data.datasets[0].data = eq;
+        ch.update();
+        const toPct = (x)=> (Number(x)||0).toFixed(2);
+        const tr = toPct(data.total_ret);
+        const cagr = toPct(data.cagr);
+        const sharpe = data.sharpe != null ? ` · Sharpe ${toPct(data.sharpe)}` : '';
+        const mdd = data.max_drawdown != null ? ` · Max DD ${toPct(data.max_drawdown)}%` : '';
+        stats.textContent = `Total return ${tr}% · CAGR ${cagr}%${sharpe}${mdd}`;
+        setStatus(status, 'Done.', true);
+      } catch (e){
+        console.error(e);
+        setStatus(status, `Error: ${e.message || e}`, false);
+      }
+    }
+
+    qs('#runBacktest').addEventListener('click', runBacktest);
+    qs('#resetBacktest').addEventListener('click', () => {
+      const ch = ensureChart();
+      ch.data.labels = []; ch.data.datasets[0].data = []; ch.update();
+      qs('#btStats').textContent=''; qs('#btStatus').textContent='';
     });
   </script>
 </body>
