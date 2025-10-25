@@ -24,8 +24,7 @@
     .card { background:linear-gradient(180deg,#0f201a,#0b1713); border:1px solid var(--line); border-radius:14px; padding:18px; box-shadow: inset 0 1px 0 rgba(255,255,255,.03), 0 2px 0 #07140f; }
     .btn { display:inline-block; padding:10px 14px; background:linear-gradient(180deg,#1bb774,#0e7c51); color:#fff; border-radius:10px; border:1px solid #0a5a3a; box-shadow:inset 0 1px 0 #54e0a4, 0 2px 0 #073e2a; }
     .btn[disabled]{ opacity:.55; cursor:not-allowed; }
-    .btn:hover:not([disabled]) { filter:brightness(1.08); }
-    .btn-outline { display:inline-block; padding:10px 14px; border:1px solid var(--line); border-radius:10px; color:var(--ink); background:#0d1b16; }
+    .btn-outline { display:inline-block; padding:10px 14px; border:1px solid var(--line); border-radius:10px; color:ink; background:#0d1b16; }
     .btn-outline:hover { background:#0f201a; }
 
     input[type="text"], input[type="number"]{ width:100%; padding:10px; border-radius:10px; border:1px solid var(--line); background:#0f1d18; color:#fff; }
@@ -76,7 +75,7 @@
             <div style="font-size:12px;color:#a9d7c5;margin-top:6px;">Default: 2025-10-01</div>
           </label>
           <div style="display:flex; align-items:flex-end; gap:12px;">
-            <button id="runBacktest" type="submit" class="btn" disabled>Run backtest</button>
+            <button id="runBacktest" type="submit" class="btn">Run backtest</button>
             <button id="resetBacktest" type="button" class="btn-outline">Reset</button>
           </div>
         </div>
@@ -118,12 +117,13 @@
     const $=(s)=>document.querySelector(s);
     $('#y').textContent=new Date().getFullYear();
 
-    // Prefill defaults and run validation once
-    (function(){
+    // Fill defaults, then validate to set button state
+    function initDefaults(){
       $('#startDate').value=CONFIG.minDate;
       $('#endDate').value=CONFIG.maxDate;
-      validateForm(); // initialize button state
-    })();
+      validateForm();
+    }
+    document.addEventListener('DOMContentLoaded', initDefaults);
 
     const setStatus=(m,ok=false)=>{ const el=$('#btStatus'); el.textContent=m||""; el.style.color= ok ? '#9ef5b2' : '#a9d7c5'; };
     const showAlert=(m)=>{ const a=$('#alert'); a.textContent=m; a.style.display='block'; };
@@ -132,10 +132,7 @@
     const isISO=(s)=>/^\d{4}-\d{2}-\d{2}$/.test(s);
     const withinWindow=(s)=>{ const d=new Date(s); return d>=new Date(CONFIG.minDate) && d<=new Date(CONFIG.maxDate); };
 
-    // Live validation that enables/disables the Run button
-    ['thr','startDate','endDate'].forEach(id => {
-      document.getElementById(id).addEventListener('input', validateForm);
-    });
+    ['thr','startDate','endDate'].forEach(id => document.getElementById(id).addEventListener('input', validateForm));
 
     function validateForm(){
       hideAlert();
@@ -151,7 +148,7 @@
       if(isISO(end) && !withinWindow(end)){ ok=false; msg.push('End must be within '+CONFIG.minDate+' to '+CONFIG.maxDate+'.'); }
 
       $('#runBacktest').disabled = !ok;
-      if(!ok) showAlert(msg.join(' ')); else hideAlert();
+      if(!ok) showAlert(msg.join(' '));
       return ok;
     }
 
@@ -171,7 +168,7 @@
     }
 
     async function runBacktest(){
-      if(!validateForm()) return; // guard (no backend call if invalid)
+      if(!validateForm()) return; // no call if invalid
 
       const btn=$('#runBacktest'); const ch=ensureChart();
       const thr=parseFloat($('#thr').value||'0.55');
@@ -182,9 +179,8 @@
         btn.disabled=true; setStatus('Running backtest…');
         const res=await fetchWithTimeout(CONFIG.endpoints.spyForecast,{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ threshold:thr, start, end }) }, CONFIG.requestTimeoutMs);
         if(!res.ok){
-          // Friendly message instead of surfacing backend 500 to the user
-          const txt=await res.text();
-          showAlert('Backtest failed. Please check the date window and try again. ('+('HTTP '+res.status)+')');
+          await res.text(); // consume for debugging if needed
+          showAlert('Backtest failed. Please check the date window and try again. (HTTP '+res.status+')');
           setStatus('');
           return;
         }
