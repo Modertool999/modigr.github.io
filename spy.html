@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>SPY Forecaster · Modi</title>
   <meta name="color-scheme" content="dark" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js" defer></script>
   <!-- Comic Neue (mobile-safe) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    :root{ color-scheme:dark; --panel:#0b1713; --line:#1a2b24; --ink:#e8f3ed; --ui-font:"Comic Sans MS","Comic Sans","Comic Neue",cursive; }
+    :root{ color-scheme:dark; --panel:#0b1713; --line:#1a2b24; --ink:#e8f3ed; --ui-font:"Comic Neue","Comic Sans MS","Comic Sans",cursive; }
     *{ box-sizing:border-box; }
     body, button, input, select, textarea{ font-family:var(--ui-font) !important; }
     body{ margin:0; background:var(--panel); color:var(--ink); }
@@ -39,6 +39,7 @@
 
     .note-red{ margin:8px 0 0 0; font-size:13px; color:#ffb3b3; border-left:3px solid #ff6b6b; padding-left:10px; }
     .alert{ display:none; border:1px solid #742a2a; background:#2a1616; color:#ffd8d8; padding:10px 12px; border-radius:10px; margin-bottom:10px; }
+    .alert.show{ display:block; }
   </style>
 </head>
 <body>
@@ -78,15 +79,18 @@
           </label>
           <label>
             <div style="font-size:14px;">Start (YYYY-MM-DD)</div>
-            <input id="startDate" type="text" pattern="^\\d{4}-\\d{2}-\\d{2}$" required />
+            <!-- IMPORTANT: single backslashes in pattern, and prefilled default value -->
+            <input id="startDate" type="text" pattern="^\d{4}-\d{2}-\d{2}$" value="2019-01-02" required />
             <div style="font-size:12px;color:#a9d7c5;margin-top:6px;">Default: 2019-01-02</div>
           </label>
           <label>
             <div style="font-size:14px;">End (YYYY-MM-DD)</div>
-            <input id="endDate" type="text" pattern="^\\d{4}-\\d{2}-\\d{2}$" required />
+            <!-- Prefilled default value -->
+            <input id="endDate" type="text" pattern="^\d{4}-\d{2}-\d{2}$" value="2025-10-01" required />
             <div style="font-size:12px;color:#a9d7c5;margin-top:6px;">Default: 2025-10-01</div>
           </label>
           <div style="display:flex; align-items:flex-end; gap:12px;">
+            <!-- type=button so clicks always fire regardless of form validity UI -->
             <button id="runBacktest" type="button" class="btn">Run backtest</button>
             <button id="resetBacktest" type="button" class="btn-outline">Reset</button>
           </div>
@@ -116,7 +120,7 @@
   </main>
 
   <footer style="color:#a9d7c5; text-align:center; font-size:12px; padding:36px 0 60px; border-top:2px solid #0a2e23; margin-top:28px;">
-    Made with love (and Azure) by Modi Goldstein-Rosenfeld
+    © <span id="y"></span> Modi Goldstein-Rosenfeld · SPY Forecaster
   </footer>
 
   <script>
@@ -127,26 +131,24 @@
       maxDate:'2025-10-01'
     };
     const $=(s)=>document.querySelector(s);
-    $('#y').textContent=new Date().getFullYear();
-
-    // Prefill defaults and validate to set initial button state
-    (function(){
-      $('#startDate').value=CONFIG.minDate;
-      $('#endDate').value=CONFIG.maxDate;
-      validateForm();
-    })();
+    document.getElementById('y').textContent=new Date().getFullYear();
 
     const setStatus=(m,ok=false)=>{ const el=$('#btStatus'); el.textContent=m||""; el.style.color= ok ? '#9ef5b2' : '#a9d7c5'; };
-    const showAlert=(m)=>{ const a=$('#alert'); a.textContent=m; a.style.display='block'; };
-    const hideAlert=()=>{ $('#alert').style.display='none'; };
+    const showAlert=(m)=>{ const a=$('#alert'); a.textContent=m; a.classList.add('show'); };
+    const hideAlert=()=> $('#alert').classList.remove('show');
     const fetchWithTimeout=(url,opt={},ms=15000)=>{ const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms); return fetch(url,{...opt,signal:c.signal}).finally(()=>clearTimeout(t)); };
     const isISO=(s)=>/^\d{4}-\d{2}-\d{2}$/.test(s);
     const withinWindow=(s)=>{ const d=new Date(s); return d>=new Date(CONFIG.minDate) && d<=new Date(CONFIG.maxDate); };
 
-    // Live validation + handlers
-    ['thr','startDate','endDate'].forEach(id => document.getElementById(id).addEventListener('input', validateForm));
-    document.getElementById('runBacktest').addEventListener('click', ()=> runBacktest());
-    document.getElementById('spyForm').addEventListener('submit', (e)=>{ e.preventDefault(); runBacktest(); });
+    // Attach handlers once DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+      // Live validation
+      ['thr','startDate','endDate'].forEach(id => document.getElementById(id).addEventListener('input', validateForm));
+      document.getElementById('runBacktest').addEventListener('click', runBacktest);
+      document.getElementById('spyForm').addEventListener('submit', (e)=>{ e.preventDefault(); runBacktest(); });
+      // Validate once with the prefilled values
+      validateForm();
+    });
 
     function validateForm(){
       hideAlert();
@@ -161,7 +163,8 @@
       if(isISO(start) && !withinWindow(start)){ ok=false; msg.push('Start must be within '+CONFIG.minDate+' to '+CONFIG.maxDate+'.'); }
       if(isISO(end) && !withinWindow(end)){ ok=false; msg.push('End must be within '+CONFIG.minDate+' to '+CONFIG.maxDate+'.'); }
 
-      $('#runBacktest').disabled = !ok;
+      // We control the enable/disable state
+      document.getElementById('runBacktest').disabled = !ok;
       if(!ok) showAlert(msg.join(' '));
       return ok;
     }
