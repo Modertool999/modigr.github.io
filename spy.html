@@ -7,7 +7,7 @@
   <meta name="color-scheme" content="dark" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
   <style>
-    :root { color-scheme: dark; --jets:#125740; --panel:#0b1713; --line:#1a2b24; --ink:#e8f3ed; }
+    :root { color-scheme: dark; --panel:#0b1713; --line:#1a2b24; --ink:#e8f3ed; }
     * { box-sizing:border-box; font-family:"Comic Sans MS","Comic Sans",cursive !important; }
     body { margin:0; background:var(--panel); color:var(--ink); }
     a { color:#8fe9b8; } a:hover{text-decoration:underline;}
@@ -19,7 +19,7 @@
 
     .brand { font-weight:800; letter-spacing:.3px; position:relative; display:inline-block; color:#fff; text-shadow:0 1px 0 #083326; }
     .brand::after{ content:""; position:absolute; left:0; bottom:-3px; height:3px; width:100%; background:linear-gradient(90deg,#87f6bf,#e4ffe4,#87f6bf); transform:scaleX(0); transform-origin:left; transition:transform .25s ease; }
-    .brand:hover::after{ transform:scaleX(1); } .brand:hover{ transform:translateY(-1px) rotate(-.2deg); transition:transform .2s ease; }
+    .brand:hover::after{ transform:scaleX(1); } .brand:hover{ transform: translateY(-1px) rotate(-.2deg); transition: transform .2s ease; }
 
     .card { background:linear-gradient(180deg,#0f201a,#0b1713); border:1px solid var(--line); border-radius:14px; padding:18px; box-shadow: inset 0 1px 0 rgba(255,255,255,.03), 0 2px 0 #07140f; }
     .btn { display:inline-block; padding:10px 14px; background:linear-gradient(180deg,#1bb774,#0e7c51); color:#fff; border-radius:10px; border:1px solid #0a5a3a; box-shadow:inset 0 1px 0 #54e0a4, 0 2px 0 #073e2a; }
@@ -49,7 +49,10 @@
   <main class="wrap" style="padding-top:20px;">
     <section class="card">
       <h1 style="margin:0 0 6px 0; font-size:28px;">S&amp;P 500 Next-Day Forecaster</h1>
-      <p style="margin:0;">Logistic-regression on engineered price features. Backtest a long-or-cash strategy and see the equity curve + stats. <b>Start</b> and <b>End</b> are required (defaults are filled in).</p>
+      <p style="margin:0;">
+        Backtest a long-or-cash strategy from engineered price features. 
+        <b>Start</b> and <b>End</b> must be within <b>2019-01-01</b> to <b>2025-10-01</b> (API window).
+      </p>
     </section>
 
     <section class="card" style="margin-top:18px;">
@@ -69,7 +72,7 @@
           <label>
             <div style="font-size:14px;">End (YYYY-MM-DD)</div>
             <input id="endDate" type="text" pattern="^\\d{4}-\\d{2}-\\d{2}$" required />
-            <div style="font-size:12px;color:#a9d7c5;margin-top:6px;">Default: today</div>
+            <div style="font-size:12px;color:#a9d7c5;margin-top:6px;">Default: 2025-10-01</div>
           </label>
           <div style="display:flex; align-items:flex-end; gap:12px;">
             <button id="runBacktest" type="submit" class="btn">Run backtest</button>
@@ -103,68 +106,75 @@
   <footer style="color:#a9d7c5; text-align:center; font-size:12px; padding:36px 0 60px; border-top:2px solid #0a2e23; margin-top:28px;">
     © <span id="y"></span> Modi Goldstein-Rosenfeld · SPY Forecaster
   </footer>
- 
-
 
   <script>
-    const CONFIG = { endpoints:{ spyForecast:'https://spy-forecast-modi-2-gka4h2cng6dhcvcf.westus-01.azurewebsites.net/api/spy-backtest' }, requestTimeoutMs:20000 };
+    const CONFIG = {
+      endpoints:{ spyForecast:'https://spy-forecast-modi-2-gka4h2cng6dhcvcf.westus-01.azurewebsites.net/api/spy-backtest' },
+      requestTimeoutMs:20000,
+      minDate:'2019-01-01',
+      maxDate:'2025-10-01'
+    };
     const $=(s)=>document.querySelector(s);
     $('#y').textContent=new Date().getFullYear();
 
-    // Defaults for required dates
-    (function(){ const start='2019-01-01'; const end=new Date().toISOString().slice(0,10); $('#startDate').value=start; $('#endDate').value=end; })();
+    // Required defaults inside API window
+    (function(){ $('#startDate').value=CONFIG.minDate; $('#endDate').value=CONFIG.maxDate; })();
 
     const setStatus=(m,ok=false)=>{ const el=$('#btStatus'); el.textContent=m||""; el.style.color= ok ? '#9ef5b2' : '#a9d7c5'; };
     const showAlert=(m)=>{ const a=$('#alert'); a.textContent=m; a.style.display='block'; };
     const hideAlert=()=>{ $('#alert').style.display='none'; };
     const fetchWithTimeout=(url,opt={},ms=15000)=>{ const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms); return fetch(url,{...opt,signal:c.signal}).finally(()=>clearTimeout(t)); };
     const isISO=(s)=>/^\d{4}-\d{2}-\d{2}$/.test(s);
-    
+    const withinWindow=(s)=>{ const d=new Date(s); return d>=new Date(CONFIG.minDate) && d<=new Date(CONFIG.maxDate); };
 
     let chart;
     function ensureChart(){
       if(chart) return chart;
-      const ctx=document.getElementById('equityChart').getContext('2d');
-      const grad=ctx.createLinearGradient(0,0,0,200); grad.addColorStop(0,'rgba(27,183,116,0.28)'); grad.addColorStop(1,'rgba(27,183,116,0.00)');
-      chart=new Chart(ctx,{ type:'line', data:{ labels:[], datasets:[{ label:'Equity (×)', data:[], borderColor:'#1bb774', backgroundColor:grad, fill:true, borderWidth:2, pointRadius:0, tension:0.18 }] },
-        options:{ responsive:true, animation:{duration:220}, interaction:{mode:'index', intersect:false}, 
+      var canvas=document.getElementById('equityChart'); if(!canvas){ console.error('Canvas missing'); return null; }
+      var ctx=canvas.getContext('2d');
+      var grad=ctx.createLinearGradient(0,0,0,200); grad.addColorStop(0,'rgba(27,183,116,0.28)'); grad.addColorStop(1,'rgba(27,183,116,0.00)');
+      chart=new Chart(ctx,{ type:'line',
+        data:{ labels:[], datasets:[{ label:'Equity (\u00D7)', data:[], borderColor:'#1bb774', backgroundColor:grad, fill:true, borderWidth:2, pointRadius:0, tension:0.18 }] },
+        options:{ responsive:true, animation:{duration:220}, interaction:{mode:'index', intersect:false},
           scales:{ y:{ beginAtZero:false, grid:{ color:'rgba(255,255,255,.08)' }}, x:{ display:false }},
-          plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label:c=>`× ${c.parsed.y.toFixed(3)}` }} }}});
+          plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label:function(c){ var y=(c&&c.parsed&&typeof c.parsed.y==='number')?c.parsed.y:0; return '\u00D7 '+y.toFixed(3); } } } }
+      }});
       return chart;
     }
 
     async function runBacktest(){
       hideAlert(); const btn=$('#runBacktest'); const ch=ensureChart();
-      const thr=parseFloat($('#thr').value||'0.55'); const start=($('#startDate').value||'').trim(); const end=($('#endDate').value||'').trim();
+      const thr=parseFloat($('#thr').value||'0.55');
+      const start=($('#startDate').value||'').trim();
+      const end=($('#endDate').value||'').trim();
+
       if(!(thr>=0 && thr<=1)){ showAlert('Threshold must be 0–1.'); return; }
       if(!isISO(start) || !isISO(end)){ showAlert('Start/End must be YYYY-MM-DD.'); return; }
       if(new Date(start) > new Date(end)){ showAlert('Start must be on or before End.'); return; }
+      if(!withinWindow(start) || !withinWindow(end)){
+        showAlert('Dates must be within the API window: '+CONFIG.minDate+' to '+CONFIG.maxDate+'.'); return;
+      }
       if(!CONFIG.endpoints.spyForecast){ showAlert('Backend endpoint not configured.'); return; }
 
       try{
         btn.disabled=true; setStatus('Running backtest…');
         const res=await fetchWithTimeout(CONFIG.endpoints.spyForecast,{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ threshold:thr, start, end }) }, CONFIG.requestTimeoutMs);
-        if(!res.ok){ const txt=await res.text(); throw new Error(`HTTP ${res.status}: ${txt.slice(0,200)}`); }
+        if(!res.ok){ const txt=await res.text(); throw new Error('HTTP '+res.status+': '+txt.slice(0,200)); }
         const data=await res.json(); const eq=Array.isArray(data.equity)? data.equity:[]; if(eq.length===0){ setStatus('No equity data for that window.'); return; }
         ch.data.labels=eq.map((_,i)=>i); ch.data.datasets[0].data=eq; ch.update();
         const pct=(x)=> (Number(x)||0).toFixed(2);
-        document.getElementById('statTR').textContent   = `${pct(data.total_ret)}%`;
-        document.getElementById('statCAGR').textContent = `${pct(data.cagr)}%`;
-        document.getElementById('statSharpe').textContent = data.sharpe!=null? pct(data.sharpe) : '—';
-        document.getElementById('statMDD').textContent    = data.max_drawdown!=null? `${pct(data.max_drawdown)}%` : '—';
-        setStatus('Done.', true);
-      }catch(e){
-        if(e.name==='AbortError') showAlert('Request timed out. Try again.');
-        else showAlert(e.message || 'Request failed.');
-        setStatus('');
-      }finally{ btn.disabled=false; }
+        $('#statTR').textContent=`${pct(data.total_ret)}%`; $('#statCAGR').textContent=`${pct(data.cagr)}%`;
+        $('#statSharpe').textContent= data.sharpe!=null? pct(data.sharpe):'—'; $('#statMDD').textContent= data.max_drawdown!=null? `${pct(data.max_drawdown)}%`:'—';
+        setStatus('Done.',true);
+      }catch(e){ if(e.name==='AbortError') showAlert('Request timed out. Please try again.'); else showAlert(e.message||'Request failed.'); setStatus(''); }
+      finally{ btn.disabled=false; }
     }
 
     document.getElementById('spyForm').addEventListener('submit', (e)=>{ e.preventDefault(); runBacktest(); });
     document.getElementById('resetBacktest').addEventListener('click', ()=>{
       hideAlert(); const ch=ensureChart(); ch.data.labels=[]; ch.data.datasets[0].data=[]; ch.update();
-      ['statTR','statCAGR','statSharpe','statMDD'].forEach(id=> document.getElementById(id).textContent='—'); setStatus('');
-      const endDefault=new Date().toISOString().slice(0,10); document.getElementById('startDate').value='2019-01-01'; document.getElementById('endDate').value=endDefault; document.getElementById('thr').value=0.55;
+      ['statTR','statCAGR','statSharpe','statMDD'].forEach(id=> $('#'+id).textContent='—'); setStatus('');
+      $('#startDate').value=CONFIG.minDate; $('#endDate').value=CONFIG.maxDate; $('#thr').value=0.55;
     });
   </script>
 </body>

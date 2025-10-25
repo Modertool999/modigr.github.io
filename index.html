@@ -6,28 +6,20 @@
   <title>Modi Goldstein-Rosenfeld · Home</title>
   <meta name="color-scheme" content="dark" />
   <style>
-    :root { color-scheme: dark; --jets:#125740; --jets-dk:#0e4736; --jets-lite:#17a673; --ink:#e8f3ed; --panel:#0b1713; --line:#1a2b24; }
+    :root { color-scheme: dark; --jets:#125740; --jets-dk:#0e4736; --ink:#e8f3ed; --panel:#0b1713; --line:#1a2b24; }
     * { box-sizing: border-box; font-family:"Comic Sans MS","Comic Sans",cursive !important; }
     body { margin:0; background:var(--panel); color:var(--ink); }
-    a { color:#8fe9b8; text-decoration:none; }
-    a:hover { text-decoration:underline; }
+    a { color:#8fe9b8; text-decoration:none; } a:hover{text-decoration:underline;}
     .wrap { max-width:1040px; margin:0 auto; padding:0 16px; }
 
-    /* Header w/ 2000s sheen */
     header { position:sticky; top:0; z-index:10; background:linear-gradient(180deg,rgba(18,87,64,.95),rgba(14,71,54,.92)); border-bottom:2px solid #0a2e23; box-shadow:0 2px 0 #062119; }
     .row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; }
-    nav a { margin-left:16px; color:#c9f3e0; }
-    nav a.active { color:#fff; text-shadow:0 1px 0 #083326; }
+    nav a { margin-left:16px; color:#c9f3e0; } nav a.active{ color:#fff; text-shadow:0 1px 0 #083326; }
 
-    /* Name hover effect: retro glow underline + wobble */
     .brand { font-weight:800; letter-spacing:.3px; position:relative; display:inline-block; color:#fff; text-shadow:0 1px 0 #083326; }
-    .brand::after{ content:""; position:absolute; left:0; bottom:-3px; height:3px; width:100%;
-      background:linear-gradient(90deg,#87f6bf,#e4ffe4,#87f6bf);
-      transform:scaleX(0); transform-origin:left; transition:transform .25s ease; }
-    .brand:hover::after{ transform:scaleX(1); }
-    .brand:hover{ transform:translateY(-1px) rotate(-.2deg); transition:transform .2s ease; }
+    .brand::after{ content:""; position:absolute; left:0; bottom:-3px; height:3px; width:100%; background:linear-gradient(90deg,#87f6bf,#e4ffe4,#87f6bf); transform:scaleX(0); transform-origin:left; transition:transform .25s ease; }
+    .brand:hover::after{ transform:scaleX(1); } .brand:hover{ transform:translateY(-1px) rotate(-.2deg); transition:transform .2s ease; }
 
-    /* Cards / buttons (2000s bevel vibes) */
     .card { background:linear-gradient(180deg,#0f201a,#0b1713); border:1px solid var(--line); border-radius:14px; padding:18px; box-shadow: inset 0 1px 0 rgba(255,255,255,.03), 0 2px 0 #07140f; }
     .btn { display:inline-block; padding:10px 14px; background:linear-gradient(180deg,#1bb774,#0e7c51); color:#fff; border-radius:10px; border:1px solid #0a5a3a; box-shadow:inset 0 1px 0 #54e0a4, 0 2px 0 #073e2a; }
     .btn:hover { filter:brightness(1.08); }
@@ -42,10 +34,11 @@
     h3{ margin:0 0 6px 0; font-size:18px; }
     p, li{ color:#d6efe4; }
     ul{ margin:8px 0 0 0; padding-left:20px; }
-    hr { border:0; border-top:1px solid var(--line); margin:12px 0; }
-
     footer { color:#a9d7c5; text-align:center; font-size:12px; padding:36px 0 60px; border-top:2px solid #0a2e23; margin-top:28px; }
-    .imgwrap { border:2px solid #0a2e23; border-radius:12px; overflow:hidden; background:#09130f; }
+
+    /* Image block: kill “left green space” by making it full-bleed in its card */
+    .imgblock { border:1px solid var(--line); border-radius:14px; overflow:hidden; background:#09130f; }
+    .imgblock img { display:block; width:100%; height:auto; margin:0; }
     .caption { font-size:12px; color:#a9d7c5; text-align:center; margin-top:6px; }
   </style>
 </head>
@@ -66,18 +59,13 @@
     <!-- Hero -->
     <section class="grid grid-5" style="align-items:flex-start;">
       <div>
-        <h1>J-E-T-S JETS JETS JETS! I’m Modi — I build data-driven projects with live demos.</h1>
+        <h1>I build small, focused ML/data projects with live demos.</h1>
         <p style="margin-top:10px; max-width:640px;">
-          End-to-end builds: data, modeling, APIs, and UI. Check out the project pages for a quick blurb and a working demo.
+          End-to-end: data, modeling, APIs, and UI. Project pages have short write-ups and working demos.
         </p>
         <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
           <a class="btn" href="steam.html">Try Steam Recommender</a>
           <a class="btn-outline" href="spy.html">Run SPY Backtest</a>
-        </div>
-        <hr>
-        <div class="card" style="padding:14px;">
-          <h3 style="margin-bottom:4px;">Why the site is green</h3>
-          <p style="margin:0;">Because I’m a <b>huge New York Jets fan</b>. Sundays = green. Hope = eternal. Defense, grit, and a little chaos.</p>
         </div>
       </div>
       <div>
@@ -91,10 +79,11 @@
           </div>
         </div>
         <div style="height:10px;"></div>
-        <div class="imgwrap">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/e/ed/ChadPennington1-crop.jpg" alt="Chad Pennington with the New York Jets, #10" style="display:block; width:100%; height:auto;">
+        <!-- Full-bleed image (no side padding) -->
+        <div class="imgblock">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/e/ed/ChadPennington1-crop.jpg" alt="Chad Pennington on the Jets sideline, Texans vs. Jets, Nov 26, 2006" />
         </div>
-        <div class="caption">Chad Pennington — the cool, accurate king of third-down timing. 🟢</div>
+        <div class="caption">Chad Pennington, Texans vs. Jets — Nov 26, 2006 (public domain, via Wikimedia Commons)</div>
       </div>
     </section>
 
@@ -106,34 +95,33 @@
           <div>
             <h3>Research interests</h3>
             <ul>
-              <li>Verified numerics & PL; Julia-ish tooling for fast matrix ops.</li>
-              <li>Large-dimensional experiments (5k–10k features) with stability + speed.</li>
-              <li>Recommenders blending content with social/behavioral context.</li>
-              <li>Pragmatic time-series forecasting for markets/ops.</li>
+              <li>Designing a Julia-style language for fast matrix operations.</li>
+              <li>Running large experiments (5k–10k dims) and measuring speed/accuracy/stability.</li>
+              <li>Recommendation systems that mix content and social signals.</li>
+              <li>Practical time-series forecasting.</li>
             </ul>
           </div>
           <div>
             <h3>Engineering interests</h3>
             <ul>
-              <li>Lean Python APIs (Flask/FastAPI) with clear errors + simple configs.</li>
-              <li>CI/CD that helps: Actions checks, one-liner installers, safe upgrades.</li>
-              <li>Container provenance & reproducible builds.</li>
-              <li>Clean data pipelines that scrape/standardize at speed.</li>
+              <li>Clean Python APIs (Flask/FastAPI) with clear errors and simple configs.</li>
+              <li>Useful CI/CD: GitHub Actions checks, one-line setup, safe upgrades.</li>
+              <li>Reproducible containers with traceable provenance.</li>
+              <li>Data pipelines for scraping, cleaning, and standardization.</li>
             </ul>
           </div>
           <div>
-            <h3>Jets corner</h3>
+            <h3>Personal</h3>
             <ul>
-              <li>All-time fave Jet: <b>Chad Pennington</b>. Precision > arm-cannon.</li>
-              <li>Dream season: ball control, nasty defense, MetLife rocking in January.</li>
-              <li>Game-day snacks: wings, dill pickles, and unreasonable optimism.</li>
+              <li>New York sports, bass fishing, fantasy football, épée fencing.</li>
+              <li>Pokémon, 2000s rock, <em>The Sopranos</em>.</li>
             </ul>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Featured -->
+    <!-- Featured projects (now 4) -->
     <section style="margin-top:20px;">
       <h2>Featured Projects</h2>
       <div class="grid grid-2" style="margin-top:8px;">
@@ -145,7 +133,17 @@
         <a class="card" href="spy.html" style="display:block;">
           <div style="color:#a9d7c5; font-size:12px;">FastAPI · scikit-learn · yfinance</div>
           <div style="font-size:20px; font-weight:700;">S&amp;P 500 Next-Day Forecaster</div>
-          <p style="margin-top:6px;">Logistic-regression strategy with equity curve + stats.</p>
+          <p style="margin-top:6px;">Long-or-cash strategy with equity curve and summary stats.</p>
+        </a>
+        <a class="card" href="https://github.com/Cornell-Fintech-Club/algo-oil" target="_blank" rel="noopener" style="display:block;">
+          <div style="color:#a9d7c5; font-size:12px;">PyTorch · NLP</div>
+          <div style="font-size:20px; font-weight:700;">Oil Trading Model</div>
+          <p style="margin-top:6px;">Sentiment pipeline using DistilRoBERTa over 450+ oil news articles.</p>
+        </a>
+        <a class="card" href="https://github.com/Modertool999/cli-subcommand-representation" target="_blank" rel="noopener" style="display:block;">
+          <div style="color:#a9d7c5; font-size:12px;">Python · CLI</div>
+          <div style="font-size:20px; font-weight:700;">CLI Sub-command Representation</div>
+          <p style="margin-top:6px;">Lightweight tooling for modeling sub-commands and flags.</p>
         </a>
       </div>
     </section>
@@ -162,7 +160,7 @@
   </main>
 
   <footer>
-    © <span id="y"></span> Modi Goldstein-Rosenfeld · J-E-T-S 🟢
+    © <span id="y"></span> Modi Goldstein-Rosenfeld
   </footer>
 
   <script>document.getElementById('y').textContent=new Date().getFullYear();</script>
