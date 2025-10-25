@@ -1,76 +1,89 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>SPY Forecaster · Modi</title>
-  <meta name="color-scheme" content="light dark" />
+  <meta name="color-scheme" content="dark" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script>tailwind={config:{theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','Segoe UI','Helvetica Neue','Arial']},colors:{brand:{50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81'}}}}}};</script>
+  <script>tailwind={config:{darkMode:'class',theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','Segoe UI','Helvetica Neue','Arial']}}}}};</script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
   <style>
-    :root { --glass-bg: rgba(255,255,255,0.85); --glass-stroke: rgba(24,24,27,.10) }
-    .dark:root { --glass-bg: rgba(24,24,27,0.65); --glass-stroke: rgba(250,250,250,.10) }
-    .glass { background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--glass-stroke); }
+    body { background:#0b0b0e; color:#e7e7ea; }
+    .card { background:#121217; border:1px solid #27272a; border-radius:1.25rem; }
+    .btn { background:#5b55ee; color:#fff; }
+    .btn:hover { background:#6c69f3; }
+    .outline { border:1px solid #2f2f37; }
+    a { color:#b8befe; }
   </style>
 </head>
-<body class="bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
-  <header class="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-zinc-900/60 border-b border-zinc-200/70 dark:border-zinc-800/60">
+<body>
+  <header class="sticky top-0 z-40 backdrop-blur bg-black/30 border-b border-zinc-800">
     <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
       <a href="index.html" class="font-extrabold tracking-tight text-lg">Modi</a>
-      <nav class="hidden sm:flex items-center gap-5 text-sm text-zinc-600 dark:text-zinc-400">
-        <a href="index.html" class="hover:text-zinc-900 dark:hover:text-zinc-100">Home</a>
-        <a href="steam.html" class="hover:text-zinc-900 dark:hover:text-zinc-100">Steam</a>
-        <a href="spy.html" class="hover:text-zinc-900 dark:hover:text-zinc-100 font-semibold">SPY</a>
-        <button id="themeToggle" class="ml-2 rounded-full px-3 py-1.5 border border-zinc-300 dark:border-zinc-700 text-xs">☀︎ / ☾</button>
+      <nav class="hidden sm:flex items-center gap-6 text-sm text-zinc-400">
+        <a href="index.html">Home</a>
+        <a href="steam.html">Steam</a>
+        <a href="spy.html" class="text-zinc-200">SPY</a>
+        <a href="https://github.com/Modertool999/spy-forecast" target="_blank">Repo ↗</a>
       </nav>
     </div>
   </header>
 
   <main class="max-w-6xl mx-auto px-4 py-10">
-    <section class="glass rounded-3xl p-6">
+    <section class="card p-6">
       <h1 class="text-3xl font-bold">S&P 500 Next-Day Forecaster</h1>
-      <p class="text-sm text-zinc-700 dark:text-zinc-300 mt-1 max-w-2xl">
-        Logistic-regression on price features. Backtest a long-or-cash strategy and see the equity curve and stats.
+      <p class="text-sm text-zinc-300 mt-1 max-w-2xl">
+        Logistic-regression on engineered price features. Backtest a long-or-cash strategy and see the equity curve and stats.
+        <strong>Start</strong> and <strong>End</strong> dates are required; defaults are provided.
       </p>
-      <div class="text-xs mt-2"><a class="underline" href="https://github.com/Modertool999/spy-forecast" target="_blank">View the code</a></div>
     </section>
 
-    <section class="mt-6 glass rounded-3xl p-6">
+    <section class="mt-6 card p-6">
+      <div id="alert" class="hidden mb-4 rounded-lg border border-red-800 bg-red-950/40 px-3 py-2 text-sm text-red-300"></div>
+
       <form id="spyForm" class="space-y-4" novalidate>
         <div class="grid sm:grid-cols-4 gap-4">
           <label class="text-sm">Threshold
-            <input id="thr" type="number" min="0" max="1" step="0.01" value="0.55" class="mt-1 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-2 w-28" />
+            <input id="thr" type="number" min="0" max="1" step="0.01" value="0.55"
+                   class="mt-1 rounded-xl outline bg-transparent px-3 py-2 w-28" required />
           </label>
+
           <label class="text-sm">Start (YYYY-MM-DD)
-            <input id="startDate" type="text" placeholder="optional" class="mt-1 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-2 w-full" />
+            <input id="startDate" type="text" pattern="^\\d{4}-\\d{2}-\\d{2}$" required
+                   class="mt-1 rounded-xl outline bg-transparent px-3 py-2 w-full" />
+            <div class="text-xs text-zinc-400 mt-1">Default: 2019-01-01</div>
           </label>
-          <label class="text-sm">End
-            <input id="endDate" type="text" placeholder="optional" class="mt-1 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-2 w-full" />
+
+          <label class="text-sm">End (YYYY-MM-DD)
+            <input id="endDate" type="text" pattern="^\\d{4}-\\d{2}-\\d{2}$" required
+                   class="mt-1 rounded-xl outline bg-transparent px-3 py-2 w-full" />
+            <div class="text-xs text-zinc-400 mt-1">Default: today</div>
           </label>
+
           <div class="flex items-end gap-2">
-            <button id="runBacktest" type="submit" class="rounded-lg px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50">Run backtest</button>
-            <button id="resetBacktest" type="button" class="rounded-lg px-3 py-1.5 border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800">Reset</button>
+            <button id="runBacktest" type="submit" class="btn rounded-xl px-4 py-2 disabled:opacity-50">Run backtest</button>
+            <button id="resetBacktest" type="button" class="rounded-xl px-4 py-2 outline">Reset</button>
           </div>
         </div>
-        <div class="flex items-center gap-2 text-xs text-zinc-500" aria-live="polite"><span id="btStatus"></span></div>
+        <div class="flex items-center gap-2 text-xs text-zinc-400" aria-live="polite"><span id="btStatus"></span></div>
       </form>
 
       <div class="mt-5">
-        <canvas id="equityChart" height="160"></canvas>
+        <canvas id="equityChart" height="170"></canvas>
       </div>
       <div id="btStatsWrap" class="mt-4 grid sm:grid-cols-4 gap-3">
-        <div class="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3"><div class="text-xs text-zinc-500">Total return</div><div id="statTR" class="text-lg font-semibold">—</div></div>
-        <div class="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3"><div class="text-xs text-zinc-500">CAGR</div><div id="statCAGR" class="text-lg font-semibold">—</div></div>
-        <div class="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3"><div class="text-xs text-zinc-500">Sharpe</div><div id="statSharpe" class="text-lg font-semibold">—</div></div>
-        <div class="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3"><div class="text-xs text-zinc-500">Max drawdown</div><div id="statMDD" class="text-lg font-semibold">—</div></div>
+        <div class="rounded-xl outline p-3"><div class="text-xs text-zinc-400">Total return</div><div id="statTR" class="text-lg font-semibold">—</div></div>
+        <div class="rounded-xl outline p-3"><div class="text-xs text-zinc-400">CAGR</div><div id="statCAGR" class="text-lg font-semibold">—</div></div>
+        <div class="rounded-xl outline p-3"><div class="text-xs text-zinc-400">Sharpe</div><div id="statSharpe" class="text-lg font-semibold">—</div></div>
+        <div class="rounded-xl outline p-3"><div class="text-xs text-zinc-400">Max drawdown</div><div id="statMDD" class="text-lg font-semibold">—</div></div>
       </div>
     </section>
 
-    <section class="mt-6 glass rounded-3xl p-6">
+    <section class="mt-6 card p-6">
       <h2 class="text-lg font-semibold">How it works</h2>
-      <ul class="list-disc pl-5 text-sm mt-2 space-y-1 text-zinc-700 dark:text-zinc-300">
+      <ul class="list-disc pl-5 text-sm mt-2 space-y-1 text-zinc-300">
         <li>Daily SPY from Yahoo Finance since 2005.</li>
         <li>Lagged features (returns, RSI, overnight gap).</li>
         <li>Train/valid/test, long-or-cash strategy (2 bps trading costs).</li>
@@ -81,7 +94,6 @@
   <footer class="py-10 text-center text-xs text-zinc-500">© <span id="y"></span> Modi Goldstein-Rosenfeld · SPY Forecaster</footer>
 
   <script>
-    // === CONFIG: set your live endpoint ===
     const CONFIG = {
       endpoints: {
         spyForecast: 'https://spy-forecast-modi-2-gka4h2cng6dhcvcf.westus-01.azurewebsites.net/api/spy-backtest'
@@ -90,33 +102,34 @@
     };
 
     const $=(s)=>document.querySelector(s);
-    document.getElementById('y').textContent = new Date().getFullYear();
+    $('#y').textContent = new Date().getFullYear();
 
-    // theme
-    const savedTheme=localStorage.getItem('theme');
-    if(savedTheme) document.documentElement.classList.toggle('dark', savedTheme==='dark');
-    document.getElementById('themeToggle').addEventListener('click', ()=>{
-      const toDark = !document.documentElement.classList.contains('dark');
-      document.documentElement.classList.toggle('dark', toDark);
-      localStorage.setItem('theme', toDark? 'dark':'light');
-    });
+    // Prefill required defaults
+    (function setDefaults(){
+      const startDefault = '2019-01-01';
+      const today = new Date(); const endDefault = today.toISOString().slice(0,10);
+      $('#startDate').value = startDefault;
+      $('#endDate').value = endDefault;
+    })();
 
-    // helpers
-    const setStatus=(el,msg,ok=false)=>{ el.textContent=msg; el.className=`text-xs ${ok? 'text-green-600 dark:text-green-400':'text-zinc-500'}` };
+    // Helpers
+    const setStatus=(el,msg,ok=false)=>{ el.textContent=msg; el.className=`text-xs ${ok? 'text-green-400':'text-zinc-400'}` };
+    const showAlert=(msg)=>{ const a=$('#alert'); a.textContent=msg; a.classList.remove('hidden'); };
+    const hideAlert=()=> $('#alert').classList.add('hidden');
     const fetchWithTimeout=(url,opt={},ms=15000)=>{ const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms); return fetch(url,{...opt,signal:c.signal}).finally(()=>clearTimeout(t)); };
+    const isISO=(s)=>/^\d{4}-\d{2}-\d{2}$/.test(s);
 
-    // chart
+    // Chart
     let chart;
     function ensureChart(){
       if(chart) return chart;
       const ctx=document.getElementById('equityChart').getContext('2d');
-      const grad=ctx.createLinearGradient(0,0,0,200); grad.addColorStop(0,'rgba(79,70,229,0.25)'); grad.addColorStop(1,'rgba(79,70,229,0.00)');
+      const grad=ctx.createLinearGradient(0,0,0,220); grad.addColorStop(0,'rgba(91,85,238,0.28)'); grad.addColorStop(1,'rgba(91,85,238,0.00)');
       chart=new Chart(ctx,{
         type:'line',
-        data:{ labels:[], datasets:[{ label:'Equity (×)', data:[], borderColor:'#4f46e5', backgroundColor:grad, fill:true, borderWidth:2, pointRadius:0, tension:0.18 }] },
-        options:{
-          responsive:true, animation:{duration:250}, interaction:{mode:'index', intersect:false},
-          scales:{ y:{ beginAtZero:false, grid:{ color:'rgba(0,0,0,.08)' }}, x:{ display:false }},
+        data:{ labels:[], datasets:[{ label:'Equity (×)', data:[], borderColor:'#5b55ee', backgroundColor:grad, fill:true, borderWidth:2, pointRadius:0, tension:0.18 }] },
+        options:{ responsive:true, animation:{duration:220}, interaction:{mode:'index', intersect:false},
+          scales:{ y:{ beginAtZero:false, grid:{ color:'rgba(255,255,255,.08)' }}, x:{ display:false }},
           plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label:c=>`× ${c.parsed.y.toFixed(3)}` }}}
         }
       });
@@ -124,22 +137,34 @@
     }
 
     async function runBacktest(){
+      hideAlert();
       const status=$('#btStatus');
       const btn=$('#runBacktest');
-      const thr=parseFloat($('#thr').value||'0.55');
-      const start=($('#startDate').value||'').trim()||null;
-      const end=($('#endDate').value||'').trim()||null;
-      const ch=ensureChart();
+      const thr=parseFloat($('#thr').value || '0.55');
+      const start=($('#startDate').value||'').trim();
+      const end=($('#endDate').value||'').trim();
 
-      if(!CONFIG.endpoints.spyForecast){ setStatus(status,'Not configured.'); return; }
+      // Validate required inputs
+      if (!isFinite(thr) || thr < 0 || thr > 1) { showAlert('Threshold must be a number between 0 and 1.'); return; }
+      if (!isISO(start) || !isISO(end)) { showAlert('Start and End must be YYYY-MM-DD.'); return; }
+      if (new Date(start) > new Date(end)) { showAlert('Start date must be on or before End date.'); return; }
+
+      if(!CONFIG.endpoints.spyForecast){ showAlert('Backend endpoint not configured.'); return; }
+
+      const ch=ensureChart();
       try{
         btn.disabled=true; setStatus(status,'Running backtest…');
-        const body={ threshold: thr }; if(start) body.start=start; if(end) body.end=end;
-        const res=await fetchWithTimeout(CONFIG.endpoints.spyForecast,{ method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(body) }, CONFIG.requestTimeoutMs);
+        const body={ threshold: thr, start, end };
+        const res=await fetchWithTimeout(CONFIG.endpoints.spyForecast,{
+          method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(body)
+        }, CONFIG.requestTimeoutMs);
+
         if(!res.ok){ const txt=await res.text(); throw new Error(`HTTP ${res.status}: ${txt.slice(0,200)}`); }
+
         const data=await res.json();
         const eq=Array.isArray(data.equity)? data.equity:[];
-        if(eq.length===0){ setStatus(status,'No equity data returned'); return; }
+        if(eq.length===0){ setStatus(status,'No equity data returned for the selected dates.'); return; }
+
         ch.data.labels=eq.map((_,i)=>i); ch.data.datasets[0].data=eq; ch.update();
         const pct=(x)=> (Number(x)||0).toFixed(2);
         $('#statTR').textContent   = `${pct(data.total_ret)}%`;
@@ -147,14 +172,24 @@
         $('#statSharpe').textContent = data.sharpe!=null? pct(data.sharpe) : '—';
         $('#statMDD').textContent    = data.max_drawdown!=null? `${pct(data.max_drawdown)}%` : '—';
         setStatus(status,'Done.',true);
-      }catch(e){ console.error(e); setStatus(status, `Error: ${e.message||e}`); }
+      }catch(e){ console.error(e); showAlert(e.message || 'Request failed.'); setStatus(status,''); }
       finally{ btn.disabled=false; }
     }
 
     document.getElementById('spyForm').addEventListener('submit', (e)=>{ e.preventDefault(); runBacktest(); });
+
     document.getElementById('resetBacktest').addEventListener('click', ()=>{
+      hideAlert();
       const ch=ensureChart(); ch.data.labels=[]; ch.data.datasets[0].data=[]; ch.update();
       ['statTR','statCAGR','statSharpe','statMDD'].forEach(id=> $('#'+id).textContent='—'); $('#btStatus').textContent='';
+      // Reset to defaults again
+      (function setDefaults(){
+        const startDefault = '2019-01-01';
+        const today = new Date(); const endDefault = today.toISOString().slice(0,10);
+        $('#startDate').value = startDefault;
+        $('#endDate').value = endDefault;
+        $('#thr').value = 0.55;
+      })();
     });
   </script>
 </body>
