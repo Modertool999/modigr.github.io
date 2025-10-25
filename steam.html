@@ -65,7 +65,7 @@
 
           <label class="text-sm md:col-span-3">Friends' similarity weight
             <input id="wSocial" type="range" min="0" max="1" step="0.05" value="0.10" class="mt-3 w-full" />
-            <div class="text-xs text-zinc-400">Value: <span id="wSocialVal">0.10</span> · Tip: if scores look flat, adjust the weights.</div>
+            <div class="text-xs text-zinc-400">Value: <span id="wSocialVal">0.10</span> · Tip: if results look flat, adjust the weights.</div>
           </label>
         </div>
 
@@ -75,9 +75,10 @@
           <span id="recStatus" class="text-xs text-zinc-400" aria-live="polite"></span>
         </div>
 
-        <ul id="recList" class="mt-2 text-sm list-disc pl-5 space-y-1"></ul>
+        <!-- Ranked list -->
+        <ol id="recList" class="mt-3 text-sm list-decimal pl-6 space-y-1"></ol>
         <p id="recHint" class="hidden mt-2 text-xs text-amber-300">
-          All scores are 0%. If your Steam profile or recent games are private—or you haven’t played recently—the model can’t personalize.
+          All signals look ~0. If your Steam profile or recent games are private—or you haven’t played recently—the model can’t personalize.
           Try increasing <em>Content</em> weight or making playtime visible, then retry.
         </p>
       </form>
@@ -96,6 +97,7 @@
   <footer class="py-10 text-center text-xs text-zinc-500">© <span id="y"></span> Modi Goldstein-Rosenfeld · Steam Recommender</footer>
 
   <script>
+    // === CONFIG ===
     const CONFIG = {
       endpoints: {
         steamRec: 'https://steam-rec-modi-2-gdefgecbdah9hqfx.westus-01.azurewebsites.net/api/recommend'
@@ -114,10 +116,13 @@
     try { const last = localStorage.getItem('steamId'); if (last) $('#steamId').value = last; } catch {}
 
     const setStatus=(el,msg,ok=false)=>{ el.textContent=msg; el.className=`text-xs ${ok? 'text-green-400':'text-zinc-400'}` };
-    const showAlert = (msg) => { const a=$('#alert'); a.textContent=msg; a.classList.remove('hidden'); };
-    const hideAlert = () => { $('#alert').classList.add('hidden'); };
+    const showAlert=(msg)=>{ const a=$('#alert'); a.textContent=msg; a.classList.remove('hidden'); };
+    const hideAlert=()=> $('#alert').classList.add('hidden');
     const isSteam64=(s)=>/^7656119\d{10}$/.test(s);
-    const fetchWithTimeout=(url,opt={},ms=15000)=>{ const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms); return fetch(url,{...opt,signal:c.signal}).finally(()=>clearTimeout(t)); };
+    const fetchWithTimeout=(url,opt={},ms=15000)=>{
+      const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms);
+      return fetch(url,{...opt,signal:c.signal}).finally(()=>clearTimeout(t));
+    };
 
     document.getElementById('steamForm').addEventListener('submit', async (e)=>{
       e.preventDefault();
@@ -132,13 +137,21 @@
       const hint=$('#recHint');
       list.innerHTML=''; hint.classList.add('hidden');
 
-      if (!CONFIG.endpoints.steamRec){ showAlert('Backend endpoint not configured.'); return; }
-      if (!isSteam64(steamId)){ showAlert('Invalid SteamID64 (must start with 7656119 and be 17 digits).'); return; }
+      // Validate ID early
+      if (!isSteam64(steamId)){
+        showAlert('Invalid SteamID64 (must start with 7656119 and be 17 digits).');
+        return;
+      }
+      if (!CONFIG.endpoints.steamRec){
+        showAlert('Backend endpoint not configured.');
+        return;
+      }
 
       try { localStorage.setItem('steamId', steamId); } catch {}
 
       try{
         btn.disabled = true; setStatus(status,'Calling backend…');
+
         const u=new URL(CONFIG.endpoints.steamRec);
         u.searchParams.set('steam_id', steamId);
         u.searchParams.set('k', 12);
@@ -147,29 +160,54 @@
         u.searchParams.set('w_social', wSocial);
 
         const res = await fetchWithTimeout(u.toString(), { method:'GET' }, CONFIG.requestTimeoutMs);
-        if (!res.ok){ const txt = await res.text(); throw new Error(`HTTP ${res.status}: ${txt.slice(0,200)}`); }
-        const data = await res.json();
 
-        if (!Array.isArray(data) || data.length===0){ setStatus(status,'No recommendations (privacy / not enough recent playtime).'); return; }
+        if (!res.ok){
+          const txt = await res.text().catch(()=> '');
+          // Common Steam privacy/invalid-key surfaces as 400/403 from your API
+          throw new Error(`HTTP ${res.status} — ${txt.slice(0,200) || 'request failed'}`);
+        }
 
-        let zeroCount = 0;
-        data.slice(0,12).forEach(r=>{
+        let data;
+        try { data = await res.json(); }
+        catch { throw new Error('Bad response: could not parse JSON.'); }
+
+        if (!Array.isArray(data) || data.length===0){
+          setStatus(status,'No recommendations (privacy / not enough recent playtime).');
+          return;
+        }
+
+        // RANK ONLY — no percent scores
+        let zeroSignals = 0;
+        data.slice(0,12).forEach((r, i)=>{
           const li=document.createElement('li');
+          const title = r.title || 'Untitled';
+          // track if backend delivered zero signal; if all are zero, show hint
           const val = (typeof r.score === 'number') ? r.score : 0;
-          if (val === 0) zeroCount++;
-          const score = (typeof r.score === 'number') ? ` — score ${(r.score*100).toFixed(0)}%` : '';
-          li.textContent = `${r.title}${score}`;
+          if (val === 0) zeroSignals++;
+          li.textContent = title;
           list.appendChild(li);
         });
-        if (zeroCount === Math.min(12, data.length)) { hint.classList.remove('hidden'); }
+
+        if (zeroSignals === Math.min(12, data.length)) { hint.classList.remove('hidden'); }
         setStatus(status,'Done.',true);
-      }catch(e){ console.error(e); showAlert(e.message || 'Request failed.'); setStatus(status,''); }
-      finally{ btn.disabled=false; }
+
+      }catch(e){
+        console.error(e);
+        // Friendly timeout message
+        if (e.name === 'AbortError') showAlert('Request timed out. Please try again (or reduce server load).');
+        else showAlert(e.message || 'Request failed.');
+        setStatus(status,'');
+      }finally{
+        btn.disabled=false;
+      }
     });
 
     $('#recReset').addEventListener('click', ()=>{
-      $('#steamId').value=''; $('#recList').innerHTML=''; $('#recStatus').textContent='';
-      $('#recHint').classList.add('hidden'); hideAlert();
+      hideAlert();
+      $('#steamId').value='';
+      $('#recList').innerHTML='';
+      $('#recStatus').textContent='';
+      $('#recHint').classList.add('hidden');
     });
   </script>
 </body>
