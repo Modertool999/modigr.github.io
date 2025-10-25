@@ -3,24 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Modi Goldstein‑Rosenfeld · Projects with Live Demos</title>
-  <meta name="description" content="Portfolio of Modi Goldstein‑Rosenfeld — data‑driven projects with live, interactive demos: Steam Game Recommender and S&P 500 Next‑Day Forecaster." />
+  <title>Modi Goldstein‑Rosenfeld · Home</title>
+  <meta name="description" content="About Modi Goldstein‑Rosenfeld — data/ML projects with live demos." />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23000000'/%3E%3Ctext x='50' y='58' font-size='54' text-anchor='middle' fill='%23ffffff' font-family='Arial'%3EM%3C/text%3E%3C/svg%3E" />
-  <meta property="og:title" content="Modi Goldstein‑Rosenfeld · Projects with Live Demos" />
-  <meta property="og:description" content="Steam Game Recommender and SPY Forecaster — see them run on real backends." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://modertool999.github.io" />
   <meta name="color-scheme" content="light dark" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script>
-    tailwind = { config: { theme: { extend: {
-      fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'Segoe UI', 'Helvetica Neue', 'Arial'] },
-      colors: { brand: { 50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81' } },
-      boxShadow: { soft: '0 10px 30px rgba(0,0,0,.08)' }
-    }}}}
-  </script>
+  <script>tailwind={config:{theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','Segoe UI','Helvetica Neue','Arial']},colors:{brand:{50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81'}}}}}};</script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
   <style>
     :root { --glass-bg: rgba(255,255,255,0.65); --glass-stroke: rgba(24,24,27,.08) }
     .dark:root { --glass-bg: rgba(24,24,27,0.55); --glass-stroke: rgba(250,250,250,.08) }
@@ -29,301 +18,84 @@
     .gradient-bg::before, .gradient-bg::after { content:""; position:absolute; width:40rem; height:40rem; filter: blur(90px); opacity:.35; }
     .gradient-bg::before { background: radial-gradient(circle at 30% 30%, #a78bfa 0%, transparent 60%); top:-10rem; left:-10rem }
     .gradient-bg::after  { background: radial-gradient(circle at 70% 70%, #60a5fa 0%, transparent 60%); bottom:-10rem; right:-10rem }
-    input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-    .shimmer { position: relative; overflow: hidden; }
-    .shimmer::after { content:""; position:absolute; inset:0; transform:translateX(-100%); background: linear-gradient(90deg, transparent, rgba(255,255,255,.4), transparent); animation: shimmer 1.2s infinite; }
-    @keyframes shimmer { 100% { transform: translateX(100%); } }
   </style>
 </head>
 <body class="bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
   <div class="gradient-bg"></div>
-
   <header class="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-zinc-900/60 border-b border-zinc-200/70 dark:border-zinc-800/60">
     <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-      <a href="#top" class="font-extrabold tracking-tight text-lg">Modi Goldstein‑Rosenfeld</a>
+      <a href="index.html" class="font-extrabold tracking-tight text-lg">Modi Goldstein‑Rosenfeld</a>
       <nav class="hidden sm:flex items-center gap-5 text-sm text-zinc-600 dark:text-zinc-400">
-        <a href="#projects" class="hover:text-zinc-900 dark:hover:text-zinc-100">Projects</a>
+        <a href="index.html" class="hover:text-zinc-900 dark:hover:text-zinc-100">Home</a>
+        <a href="steam.html" class="hover:text-zinc-900 dark:hover:text-zinc-100">Steam Recommender</a>
+        <a href="spy.html" class="hover:text-zinc-900 dark:hover:text-zinc-100">SPY Forecaster</a>
         <a href="https://github.com/Modertool999" target="_blank" class="hover:text-zinc-900 dark:hover:text-zinc-100">GitHub ↗</a>
-        <a href="#contact" class="hover:text-zinc-900 dark:hover:text-zinc-100">Contact</a>
         <button id="themeToggle" class="ml-2 rounded-full px-3 py-1.5 border border-zinc-300 dark:border-zinc-700 text-xs">☀︎ / ☾</button>
       </nav>
     </div>
   </header>
 
-  <main id="top" class="max-w-6xl mx-auto px-4">
-    <section class="pt-10 sm:pt-16 pb-8">
-      <div class="grid md:grid-cols-5 gap-8 items-center">
+  <main class="max-w-6xl mx-auto px-4">
+    <section class="pt-10 sm:pt-16 pb-10">
+      <div class="grid md:grid-cols-5 gap-8 items-start">
         <div class="md:col-span-3">
-          <h1 class="text-4xl sm:text-5xl font-extrabold leading-tight">
-            I build data‑driven products with <span class="text-brand-600">real, live demos</span>.
-          </h1>
-          <p class="mt-4 text-zinc-600 dark:text-zinc-400 max-w-2xl">Below are two recent projects wired to running backends on Azure. Try them: paste your SteamID64 for personalized game recommendations, or run a SPY next‑day forecaster and see the equity curve update instantly.</p>
+          <h1 class="text-4xl sm:text-5xl font-extrabold leading-tight">Hi, I’m Modi — I ship data‑driven products.</h1>
+          <p class="mt-4 text-zinc-600 dark:text-zinc-400 max-w-2xl">I like small, sharp projects that demonstrate end‑to‑end impact: data, modeling, APIs, and a clean UI. Explore my work below, including live demos hosted on Azure.</p>
           <div class="mt-6 flex flex-wrap gap-3">
-            <a href="#projects" class="rounded-xl bg-brand-600 text-white px-4 py-2 shadow-soft hover:bg-brand-700">See projects</a>
-            <a href="https://github.com/Modertool999" target="_blank" class="rounded-xl border border-zinc-300 dark:border-zinc-700 px-4 py-2">GitHub ↗</a>
+            <a href="steam.html" class="rounded-xl bg-brand-600 text-white px-4 py-2 hover:bg-brand-700">Try Steam Recommender</a>
+            <a href="spy.html" class="rounded-xl border border-zinc-300 dark:border-zinc-700 px-4 py-2">Run SPY Backtest</a>
           </div>
         </div>
         <div class="md:col-span-2">
-          <div class="glass rounded-3xl p-5 shadow-soft">
+          <div class="glass rounded-3xl p-5 shadow">
             <p class="text-sm text-zinc-600 dark:text-zinc-400">Résumé</p>
             <h2 class="text-lg font-semibold">Modi Goldstein‑Rosenfeld</h2>
-            <p class="text-sm text-zinc-600 dark:text-zinc-400">ML & data projects · backend + frontend</p>
+            <p class="text-sm text-zinc-600 dark:text-zinc-400">ML & Data · Backend + Frontend</p>
             <div class="mt-3 flex gap-3 flex-wrap text-sm">
               <a class="rounded-lg bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 px-3 py-1.5" href="./Modi_Goldstein-Rosenfeld_Resume.pdf" target="_blank" rel="noopener">Download PDF</a>
-              <a class="rounded-lg border border-zinc-300 dark:border-zinc-700 px-3 py-1.5" href="#contact">Contact me</a>
+              <a class="rounded-lg border border-zinc-300 dark:border-zinc-700 px-3 py-1.5" href="#contact">Contact</a>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <script>
-      const CONFIG = {
-        endpoints: {
-          steamRec: 'https://steam-rec-modi-2-gdefgecbdah9hqfx.westus-01.azurewebsites.net/api/recommend',
-          spyForecast: 'https://spy-forecast-modi-2-gka4h2cng6dhcvcf.westus-01.azurewebsites.net/api/spy-backtest'
-        },
-        requestTimeoutMs: 20000
-      };
-      (function(){
-        const root = document.documentElement;
-        const saved = localStorage.getItem('theme');
-        if (saved) { root.classList.toggle('dark', saved==='dark'); }
-        else { root.classList.toggle('dark', window.matchMedia('(prefers-color-scheme: dark)').matches); }
-      })();
-    </script>
-
-    <section id="projects" class="pb-20 space-y-10">
-      <h2 class="text-2xl sm:text-3xl font-bold">Recent Projects — live</h2>
-
-      <article class="glass rounded-3xl p-6 shadow-soft">
-        <div class="flex items-start justify-between gap-4">
-          <div>
-            <div class="inline-flex items-center gap-2 text-xs mb-2"><span class="px-2 py-0.5 rounded-full bg-brand-100 text-brand-700">Live demo</span><span class="text-zinc-500">Flask · Steam Web API</span></div>
-            <h3 class="text-xl font-semibold">Steam Game Recommender</h3>
-            <p class="text-sm text-zinc-600 dark:text-zinc-400">TF‑IDF on game text + friends’ playtime. Paste your <strong>SteamID64</strong> to see recommendations.</p>
-          </div>
-          <a class="text-sm underline" href="https://github.com/Modertool999/game-recommender" target="_blank" rel="noopener">Repo ↗</a>
-        </div>
-
-        <form id="steamForm" class="mt-5 space-y-4" novalidate>
-          <div class="grid sm:grid-cols-3 gap-4">
-            <label class="text-sm">SteamID64
-              <input id="steamId" inputmode="numeric" pattern="^7656119\d{10}$" class="mt-1 w-full rounded-xl border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-2" placeholder="7656119XXXXXXXXXX" required aria-describedby="steamHelp steamErr" />
-              <div id="steamHelp" class="text-xs text-zinc-500 mt-1">Don’t know it? <a class="underline" href="https://steamid.io/lookup" target="_blank" rel="noopener">steamid.io/lookup</a> → copy <em>SteamID64</em>.</div>
-              <div id="steamErr" class="hidden text-xs text-red-600 mt-1"></div>
-            </label>
-            <label class="text-sm">Content weight (TF‑IDF)
-              <input id="wContent" type="range" min="0" max="1" step="0.05" value="0.6" class="mt-3 w-full" />
-              <div class="text-xs text-zinc-500">Value: <span id="wContentVal">0.60</span></div>
-            </label>
-            <label class="text-sm">Playtime weight
-              <input id="wPlay" type="range" min="0" max="1" step="0.05" value="0.4" class="mt-3 w-full" />
-              <div class="text-xs text-zinc-500">Value: <span id="wPlayVal">0.40</span></div>
-            </label>
-          </div>
-          <div class="flex flex-wrap items-center gap-3">
-            <button id="recBtn" type="submit" class="rounded-xl px-4 py-2 bg-brand-600 text-white hover:bg-brand-700 disabled:opacity-50">Get recommendations</button>
-            <button id="recReset" type="button" class="rounded-xl px-4 py-2 border border-zinc-300 dark:border-zinc-700">Reset</button>
-            <span id="recStatus" class="text-xs text-zinc-500" aria-live="polite"></span>
-          </div>
-          <div id="recListWrap" class="mt-3 grid sm:grid-cols-2 gap-3" aria-live="polite"></div>
-        </form>
-      </article>
-
-      <article class="glass rounded-3xl p-6 shadow-soft">
-        <div class="flex items-start justify-between gap-4">
-          <div>
-            <div class="inline-flex items-center gap-2 text-xs mb-2"><span class="px-2 py-0.5 rounded-full bg-brand-100 text-brand-700">Live demo</span><span class="text-zinc-500">FastAPI · scikit‑learn · yfinance</span></div>
-            <h3 class="text-xl font-semibold">S&P 500 Next‑Day Forecaster</h3>
-            <p class="text-sm text-zinc-600 dark:text-zinc-400">Runs a logistic‑regression long‑or‑cash backtest and returns an equity curve + stats.</p>
-          </div>
-          <a class="text-sm underline" href="https://github.com/Modertool999/spy-forecast" target="_blank" rel="noopener">Repo ↗</a>
-        </div>
-
-        <form id="spyForm" class="mt-5 space-y-4" novalidate>
-          <div class="grid sm:grid-cols-4 gap-4">
-            <label class="text-sm">Threshold
-              <input id="thr" type="number" min="0" max="1" step="0.01" value="0.55" class="mt-1 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-2 w-28" />
-            </label>
-            <label class="text-sm">Start (YYYY‑MM‑DD)
-              <input id="startDate" type="text" placeholder="optional" class="mt-1 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-2 w-full" />
-            </label>
-            <label class="text-sm">End
-              <input id="endDate" type="text" placeholder="optional" class="mt-1 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-2 w-full" />
-            </label>
-            <div class="flex items-end gap-2">
-              <button id="runBacktest" type="submit" class="rounded-xl px-4 py-2 bg-brand-600 text-white hover:bg-brand-700 disabled:opacity-50">Run backtest</button>
-              <button id="resetBacktest" type="button" class="rounded-xl px-4 py-2 border border-zinc-300 dark:border-zinc-700">Reset</button>
-            </div>
-          </div>
-          <div class="flex items-center gap-2 text-xs text-zinc-500" aria-live="polite"><span id="btStatus"></span></div>
-        </form>
-
-        <div class="mt-5">
-          <canvas id="equityChart" height="150"></canvas>
-        </div>
-        <div id="btStatsWrap" class="mt-4 grid sm:grid-cols-4 gap-3">
-          <div class="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3"><div class="text-xs text-zinc-500">Total return</div><div id="statTR" class="text-lg font-semibold">—</div></div>
-          <div class="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3"><div class="text-xs text-zinc-500">CAGR</div><div id="statCAGR" class="text-lg font-semibold">—</div></div>
-          <div class="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3"><div class="text-xs text-zinc-500">Sharpe</div><div id="statSharpe" class="text-lg font-semibold">—</div></div>
-          <div class="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3"><div class="text-xs text-zinc-500">Max drawdown</div><div id="statMDD" class="text-lg font-semibold">—</div></div>
-        </div>
-      </article>
-
-      <article class="glass rounded-3xl p-6 shadow-soft">
-        <h3 class="text-lg font-semibold">More projects</h3>
-        <ul class="list-disc pl-5 text-sm mt-2 space-y-1">
-          <li><a class="underline" href="https://github.com/Cornell-Fintech-Club/algo-oil" target="_blank" rel="noopener">Oil Trading Model (Cornell FinTech Club)</a> — headline sentiment → trading signal (code + write‑up).</li>
-        </ul>
-      </article>
+    <section class="pb-16 space-y-6">
+      <h2 class="text-2xl sm:text-3xl font-bold">Featured Projects</h2>
+      <div class="grid md:grid-cols-2 gap-6">
+        <a href="steam.html" class="block glass rounded-3xl p-6 hover:shadow-lg transition-shadow">
+          <div class="text-xs mb-2 text-zinc-500">Flask · Steam Web API</div>
+          <h3 class="text-xl font-semibold">Steam Game Recommender</h3>
+          <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">TF‑IDF on game text + friends’ playtime → ranked recs. Live demo available.</p>
+        </a>
+        <a href="spy.html" class="block glass rounded-3xl p-6 hover:shadow-lg transition-shadow">
+          <div class="text-xs mb-2 text-zinc-500">FastAPI · scikit‑learn · yfinance</div>
+          <h3 class="text-xl font-semibold">S&P 500 Next‑Day Forecaster</h3>
+          <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">Simple logistic‑regression strategy with equity curve + stats. Live demo available.</p>
+        </a>
+      </div>
     </section>
 
     <section id="contact" class="pb-16">
-      <div class="glass rounded-3xl p-6 shadow-soft">
+      <div class="glass rounded-3xl p-6">
         <h2 class="text-2xl font-bold">Contact</h2>
-        <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">Email me at <a class="underline" href="mailto:youremail@example.com">youremail@example.com</a> or DM on <a class="underline" href="https://github.com/Modertool999" target="_blank" rel="noopener">GitHub</a>.</p>
+        <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-2">Email: <a class="underline" href="mailto:youremail@example.com">youremail@example.com</a> • GitHub: <a class="underline" href="https://github.com/Modertool999" target="_blank">@Modertool999</a></p>
       </div>
     </section>
   </main>
 
-  <footer class="py-10 text-center text-xs text-zinc-500">© <span id="y"></span> Modi Goldstein‑Rosenfeld · Built with HTML + Tailwind + Chart.js · Live APIs on Azure</footer>
-
-  <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 hidden">
-    <div class="glass rounded-xl px-4 py-2 shadow-soft text-sm" id="toastMsg"></div>
-  </div>
+  <footer class="py-10 text-center text-xs text-zinc-500">© <span id="y"></span> Modi Goldstein‑Rosenfeld · Built with HTML + Tailwind · Live APIs on Azure</footer>
 
   <script>
-    const qs = (sel) => document.querySelector(sel);
-    const toast = (msg, ok=false) => {
-      const el = qs('#toast'); const box = qs('#toastMsg');
-      box.textContent = msg; box.className = `glass rounded-xl px-4 py-2 shadow-soft text-sm ${ok? 'text-green-700 dark:text-green-400':'text-red-600 dark:text-red-400'}`;
-      el.classList.remove('hidden');
-      setTimeout(()=> el.classList.add('hidden'), 2500);
-    };
-    function setStatus(el, msg, ok=false){ el.textContent = msg; el.className = `text-xs ${ok? 'text-green-600 dark:text-green-400':'text-zinc-500'}`; }
-    function isSteam64(s){ return /^7656119\d{10}$/.test(s); }
-    function fetchWithTimeout(url, options={}, timeoutMs=15000){
-      const controller = new AbortController();
-      const id = setTimeout(()=>controller.abort(), timeoutMs);
-      return fetch(url, {...options, signal: controller.signal}).finally(()=>clearTimeout(id));
-    }
-
-    qs('#themeToggle').addEventListener('click', ()=>{
-      const root = document.documentElement; const toDark = !root.classList.contains('dark');
-      root.classList.toggle('dark', toDark); localStorage.setItem('theme', toDark? 'dark':'light');
-    });
-
-    qs('#y').textContent = new Date().getFullYear();
-
-    qs('#wContent').addEventListener('input', e=> qs('#wContentVal').textContent = Number(e.target.value).toFixed(2));
-    qs('#wPlay').addEventListener('input',   e=> qs('#wPlayVal').textContent   = Number(e.target.value).toFixed(2));
-
-    const steamForm = qs('#steamForm');
-    steamForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = qs('#recBtn');
-      const steamId = (qs('#steamId').value || '').trim();
-      const wContent = parseFloat(qs('#wContent').value || '0.6');
-      const wPlay = parseFloat(qs('#wPlay').value || '0.4');
-      const status = qs('#recStatus');
-      const listWrap = qs('#recListWrap');
-      const err = qs('#steamErr');
-      listWrap.innerHTML = ''; err.classList.add('hidden'); err.textContent='';
-
-      if (!CONFIG.endpoints.steamRec){ toast('Steam endpoint not configured'); return; }
-      if (!isSteam64(steamId)) { err.textContent = 'Invalid SteamID64 (17 digits starting with 7656119).'; err.classList.remove('hidden'); return; }
-
-      try { localStorage.setItem('steamId', steamId); } catch {}
-
-      try {
-        btn.disabled = true; setStatus(status, 'Calling backend…');
-        const u = new URL(CONFIG.endpoints.steamRec);
-        u.searchParams.set('steam_id', steamId);
-        u.searchParams.set('k', 10);
-        u.searchParams.set('w_content', wContent);
-        u.searchParams.set('w_playtime', wPlay);
-        const res = await fetchWithTimeout(u.toString(), { method: 'GET' }, CONFIG.requestTimeoutMs);
-        if (!res.ok) { const txt = await res.text(); throw new Error(`HTTP ${res.status}: ${txt.slice(0,160)}`); }
-        const sh = document.createElement('div'); sh.className='shimmer h-24 rounded-xl glass'; listWrap.appendChild(sh);
-        const data = await res.json(); listWrap.removeChild(sh);
-        if (!Array.isArray(data) || data.length===0){ setStatus(status, 'No recommendations (account privacy or not enough recent playtime).'); return; }
-        data.slice(0,10).forEach(r => {
-          const card = document.createElement('div');
-          card.className = 'rounded-xl border border-zinc-200 dark:border-zinc-800 p-3 flex items-center justify-between';
-          const title = document.createElement('div'); title.className='text-sm'; title.textContent = r.title || 'Unknown';
-          const badge = document.createElement('span'); badge.className='text-xs px-2 py-0.5 rounded-full bg-brand-100 text-brand-700';
-          if (typeof r.score === 'number') badge.textContent = `${(r.score*100).toFixed(0)}%`; else badge.textContent = 'rec';
-          card.appendChild(title); card.appendChild(badge); listWrap.appendChild(card);
-        });
-        setStatus(status, 'Done.', true);
-      } catch (e){ console.error(e); setStatus(status, ''); toast(e.message || 'Error calling backend'); }
-      finally { btn.disabled = false; }
-    });
-
-    try { const last = localStorage.getItem('steamId'); if (last) qs('#steamId').value = last; } catch {}
-
-    qs('#recReset').addEventListener('click', ()=>{
-      qs('#steamId').value=''; qs('#recListWrap').innerHTML=''; qs('#recStatus').textContent=''; qs('#steamErr').classList.add('hidden');
-    });
-
-    let chart;
-    function ensureChart(){
-      if (chart) return chart;
-      const ctx = document.getElementById('equityChart').getContext('2d');
-      const gradient = ctx.createLinearGradient(0,0,0,160);
-      gradient.addColorStop(0, 'rgba(99,102,241,0.35)');
-      gradient.addColorStop(1, 'rgba(99,102,241,0.00)');
-      chart = new Chart(ctx, {
-        type: 'line',
-        data: { labels: [], datasets: [{ label: 'Equity (×)', data: [], borderColor: '#6366f1', backgroundColor: gradient, fill: true, borderWidth: 2, pointRadius: 0, tension: 0.18 }] },
-        options: {
-          responsive: true,
-          animation: { duration: 300 },
-          interaction: { mode: 'index', intersect: false },
-          scales: { y: { beginAtZero: false, grid: { color: 'rgba(127,127,127,.15)' } }, x:{ display:false } },
-          plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `× ${ctx.parsed.y.toFixed(3)}` }}}
-        }
-      });
-      return chart;
-    }
-
-    async function runBacktest(){
-      const status = qs('#btStatus');
-      const btn = qs('#runBacktest');
-      const thr = parseFloat(qs('#thr').value || '0.55');
-      const start = (qs('#startDate').value || '').trim() || null;
-      const end = (qs('#endDate').value || '').trim() || null;
-      const ch = ensureChart();
-
-      if (!CONFIG.endpoints.spyForecast){ toast('SPY endpoint not configured'); return; }
-
-      try {
-        btn.disabled = true; setStatus(status, 'Running backtest…');
-        const body = { threshold: thr }; if (start) body.start = start; if (end) body.end = end;
-        const res = await fetchWithTimeout(CONFIG.endpoints.spyForecast, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }, CONFIG.requestTimeoutMs);
-        if (!res.ok){ const txt=await res.text(); throw new Error(`HTTP ${res.status}: ${txt.slice(0,200)}`); }
-        const data = await res.json();
-        const eq = Array.isArray(data.equity) ? data.equity : [];
-        if (eq.length === 0){ setStatus(status, 'No equity data returned'); return; }
-        ch.data.labels = eq.map((_,i)=>i);
-        ch.data.datasets[0].data = eq;
-        ch.update();
-        const toPct = (x)=> (Number(x)||0).toFixed(2);
-        qs('#statTR').textContent = `${toPct(data.total_ret)}%`;
-        qs('#statCAGR').textContent = `${toPct(data.cagr)}%`;
-        qs('#statSharpe').textContent = data.sharpe!=null? toPct(data.sharpe) : '—';
-        qs('#statMDD').textContent = data.max_drawdown!=null? `${toPct(data.max_drawdown)}%` : '—';
-        setStatus(status, 'Done.', true);
-      } catch (e){ console.error(e); setStatus(status, ''); toast(e.message || 'Error running backtest'); }
-      finally { btn.disabled = false; }
-    }
-
-    qs('#spyForm').addEventListener('submit', (e)=>{ e.preventDefault(); runBacktest(); });
-    qs('#resetBacktest').addEventListener('click', () => {
-      const ch = ensureChart(); ch.data.labels = []; ch.data.datasets[0].data = []; ch.update();
-      ['statTR','statCAGR','statSharpe','statMDD'].forEach(id=> qs('#'+id).textContent='—');
-      qs('#btStatus').textContent='';
+    document.getElementById('y').textContent = new Date().getFullYear();
+    const root = document.documentElement;
+    const saved = localStorage.getItem('theme');
+    if (saved) { root.classList.toggle('dark', saved==='dark'); }
+    else { root.classList.toggle('dark', window.matchMedia('(prefers-color-scheme: dark)').matches); }
+    document.getElementById('themeToggle').addEventListener('click', ()=>{
+      const toDark = !root.classList.contains('dark');
+      root.classList.toggle('dark', toDark);
+      localStorage.setItem('theme', toDark? 'dark':'light');
     });
   </script>
 </body>

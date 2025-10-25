@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SPY Forecaster · Modi</title>
+  <meta name="color-scheme" content="light dark" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>tailwind={config:{theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','Segoe UI','Helvetica Neue','Arial']},colors:{brand:{50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81'}}}}}};</script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+  <style>
+    :root { --glass-bg: rgba(255,255,255,0.65); --glass-stroke: rgba(24,24,27,.08) }
+    .dark:root { --glass-bg: rgba(24,24,27,0.55); --glass-stroke: rgba(250,250,250,.08) }
+    .glass { background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--glass-stroke); }
+  </style>
+</head>
+<body class="bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+  <header class="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-zinc-900/60 border-b border-zinc-200/70 dark:border-zinc-800/60">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="index.html" class="font-extrabold tracking-tight text-lg">Modi</a>
+      <nav class="hidden sm:flex items-center gap-5 text-sm text-zinc-600 dark:text-zinc-400">
+        <a href="index.html" class="hover:text-zinc-900 dark:hover:text-zinc-100">Home</a>
+        <a href="steam.html" class="hover:text-zinc-900 dark:hover:text-zinc-100">Steam</a>
+        <a href="spy.html" class="hover:text-zinc-900 dark:hover:text-zinc-100 font-semibold">SPY</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-10">
+    <section class="glass rounded-3xl p-6">
+      <h1 class="text-3xl font-bold">S&P 500 Next‑Day Forecaster</h1>
+      <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-1 max-w-2xl">A lightweight logistic‑regression model on engineered price features. Backtest returns an equity curve and stats for a long‑or‑cash strategy (2 bps trading costs assumed).</p>
+      <div class="text-xs mt-2"><a class="underline" href="https://github.com/Modertool999/spy-forecast" target="_blank">View the code</a></div>
+    </section>
+
+    <section class="mt-6 glass rounded-3xl p-6">
+      <form id="spyForm" class="space-y-4" novalidate>
+        <div class="grid sm:grid-cols-4 gap-4">
+          <label class="text-sm">Threshold
+            <input id="thr" type="number" min="0" max="1" step="0.01" value="0.55" class="mt-1 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-2 w-28" />
+          </label>
+          <label class="text-sm">Start (YYYY‑MM‑DD)
+            <input id="startDate" type="text" placeholder="optional" class="mt-1 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-2 w-full" />
+          </label>
+          <label class="text-sm">End
+            <input id="endDate" type="text" placeholder="optional" class="mt-1 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-transparent px-3 py-2 w-full" />
+          </label>
+          <div class="flex items-end gap-2">
+            <button id="runBacktest" type="submit" class="rounded-xl px-4 py-2 bg-brand-600 text-white hover:bg-brand-700 disabled:opacity-50">Run backtest</button>
+            <button id="resetBacktest" type="button" class="rounded-xl px-4 py-2 border border-zinc-300 dark:border-zinc-700">Reset</button>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 text-xs text-zinc-500" aria-live="polite"><span id="btStatus"></span></div>
+      </form>
+
+      <div class="mt-5">
+        <canvas id="equityChart" height="150"></canvas>
+      </div>
+      <div id="btStatsWrap" class="mt-4 grid sm:grid-cols-4 gap-3">
+        <div class="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3"><div class="text-xs text-zinc-500">Total return</div><div id="statTR" class="text-lg font-semibold">—</div></div>
+        <div class="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3"><div class="text-xs text-zinc-500">CAGR</div><div id="statCAGR" class="text-lg font-semibold">—</div></div>
+        <div class="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3"><div class="text-xs text-zinc-500">Sharpe</div><div id="statSharpe" class="text-lg font-semibold">—</div></div>
+        <div class="rounded-xl border border-zinc-200 dark:border-zinc-800 p-3"><div class="text-xs text-zinc-500">Max drawdown</div><div id="statMDD" class="text-lg font-semibold">—</div></div>
+      </div>
+    </section>
+
+    <section class="mt-6 glass rounded-3xl p-6">
+      <h2 class="text-lg font-semibold">How it works</h2>
+      <ul class="list-disc pl-5 text-sm mt-2 space-y-1 text-zinc-700 dark:text-zinc-300">
+        <li>Daily SPY data from Yahoo Finance since 2005.</li>
+        <li>Lagged features (returns, RSI, overnight gap).</li>
+        <li>Train/valid/test split; simple long‑or‑cash strategy with 2 bps costs.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="py-10 text-center text-xs text-zinc-500">© <span id="y"></span> Modi Goldstein‑Rosenfeld · SPY Forecaster</footer>
+
+  <script>
+    const CONFIG = { endpoints: { spyForecast: 'https://spy-forecast-modi-2-gka4h2cng6dhcvcf.westus-01.azurewebsites.net/api/spy-backtest' }, requestTimeoutMs: 20000 };
+    const qs=(sel)=>document.querySelector(sel);
+    document.getElementById('y').textContent = new Date().getFullYear();
+    const savedTheme=localStorage.getItem('theme'); if(savedTheme) document.documentElement.classList.toggle('dark', savedTheme==='dark');
+    const setStatus=(el,msg,ok=false)=>{ el.textContent=msg; el.className=`text-xs ${ok? 'text-green-600 dark:text-green-400':'text-zinc-500'}` };
+    const fetchWithTimeout=(url,opt={},ms=15000)=>{ const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms); return fetch(url,{...opt,signal:c.signal}).finally(()=>clearTimeout(t)); };
+
+    let chart;
+    function ensureChart(){
+      if(chart) return chart;
+      const ctx=document.getElementById('equityChart').getContext('2d');
+      const grad=ctx.createLinearGradient(0,0,0,160); grad.addColorStop(0,'rgba(99,102,241,0.35)'); grad.addColorStop(1,'rgba(99,102,241,0.00)');
+      chart=new Chart(ctx,{ type:'line', data:{ labels:[], datasets:[{ label:'Equity (×)', data:[], borderColor:'#6366f1', backgroundColor:grad, fill:true, borderWidth:2, pointRadius:0, tension:0.18 }] }, options:{ responsive:true, animation:{duration:300}, interaction:{mode:'index', intersect:false}, scales:{ y:{ beginAtZero:false, grid:{ color:'rgba(127,127,127,.15)'}}, x:{ display:false }}, plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label:c=>`× ${c.parsed.y.toFixed(3)}` }}} }});
+      return chart;
+    }
+
+    async function runBacktest(){
+      const status=qs('#btStatus');
+      const btn=qs('#runBacktest');
+      const thr=parseFloat(qs('#thr').value||'0.55');
+      const start=(qs('#startDate').value||'').trim()||null;
+      const end=(qs('#endDate').value||'').trim()||null;
+      const ch=ensureChart();
+      if(!CONFIG.endpoints.spyForecast){ setStatus(status,'Not configured.'); return; }
+      try{
+        btn.disabled=true; setStatus(status,'Running backtest…');
+        const body={ threshold:thr }; if(start) body.start=start; if(end) body.end=end;
+        const res=await fetchWithTimeout(CONFIG.endpoints.spyForecast,{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) }, CONFIG.requestTimeoutMs);
+        if(!res.ok){ const txt=await res.text(); throw new Error(`HTTP ${res.status}: ${txt.slice(0,200)}`); }
+        const data=await res.json();
+        const eq=Array.isArray(data.equity)? data.equity:[];
+        if(eq.length===0){ setStatus(status,'No equity data returned'); return; }
+        ch.data.labels=eq.map((_,i)=>i); ch.data.datasets[0].data=eq; ch.update();
+        const pct=(x)=> (Number(x)||0).toFixed(2);
+        qs('#statTR').textContent=`${pct(data.total_ret)}%`;
+        qs('#statCAGR').textContent=`${pct(data.cagr)}%`;
+        qs('#statSharpe').textContent= data.sharpe!=null? pct(data.sharpe):'—';
+        qs('#statMDD').textContent= data.max_drawdown!=null? `${pct(data.max_drawdown)}%`:'—';
+        setStatus(status,'Done.',true);
+      }catch(e){ console.error(e); setStatus(status, `Error: ${e.message||e}`); }
+      finally{ btn.disabled=false; }
+    }
+
+    qs('#spyForm').addEventListener('submit', (e)=>{ e.preventDefault(); runBacktest(); });
+    qs('#resetBacktest').addEventListener('click', ()=>{ const ch=ensureChart(); ch.data.labels=[]; ch.data.datasets[0].data=[]; ch.update(); ['statTR','statCAGR','statSharpe','statMDD'].forEach(id=> qs('#'+id).textContent='—'); qs('#btStatus').textContent=''; });
+  </script>
+</body>
+</html>
