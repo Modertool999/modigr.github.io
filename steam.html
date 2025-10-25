@@ -1,43 +1,39 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Steam Game Recommender · Modi</title>
+  <title>Steam Recommender · Modi</title>
   <meta name="color-scheme" content="dark" />
   <style>
-    :root { color-scheme: dark; }
-    * { box-sizing: border-box; font-family: "Comic Sans MS","Comic Sans",cursive !important; }
-    body { margin:0; background:#0b0b0e; color:#e7e7ea; }
-    a { color: #c7caff; text-decoration:none; }
-    a:hover { text-decoration: underline; }
+    :root { color-scheme: dark; --jets:#125740; --panel:#0b1713; --line:#1a2b24; --ink:#e8f3ed; }
+    * { box-sizing:border-box; font-family:"Comic Sans MS","Comic Sans",cursive !important; }
+    body { margin:0; background:var(--panel); color:var(--ink); }
+    a { color:#8fe9b8; } a:hover{text-decoration:underline;}
     .wrap { max-width:1040px; margin:0 auto; padding:0 16px; }
 
-    header { position: sticky; top:0; z-index:10; backdrop-filter: blur(6px); background: rgba(0,0,0,.35); border-bottom:1px solid #27272a; }
-    .row { display:flex; align-items:center; justify-content:space-between; padding:12px 0; }
-    nav a { margin-left:18px; color:#b5b5c8; } nav a.active { color:#fff; }
+    header { position:sticky; top:0; z-index:10; background:linear-gradient(180deg,rgba(18,87,64,.95),rgba(14,71,54,.92)); border-bottom:2px solid #0a2e23; box-shadow:0 2px 0 #062119; }
+    .row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; }
+    nav a { margin-left:16px; color:#c9f3e0; } nav a.active { color:#fff; text-shadow:0 1px 0 #083326; }
 
-    .brand { font-weight:800; letter-spacing:.2px; position:relative; display:inline-block; color:#fff; }
-    .brand::after{ content:""; position:absolute; left:0; bottom:-4px; height:2px; width:100%; background:linear-gradient(90deg,#96a7ff,#d7b8ff,#96a7ff); transform:scaleX(0); transform-origin:left; transition:transform .25s ease; }
-    .brand:hover::after{ transform:scaleX(1); }
-    .brand:hover{ transform: translateY(-1px); transition: transform .2s ease; }
+    .brand { font-weight:800; letter-spacing:.3px; position:relative; display:inline-block; color:#fff; text-shadow:0 1px 0 #083326; }
+    .brand::after{ content:""; position:absolute; left:0; bottom:-3px; height:3px; width:100%; background:linear-gradient(90deg,#87f6bf,#e4ffe4,#87f6bf); transform:scaleX(0); transform-origin:left; transition:transform .25s ease; }
+    .brand:hover::after{ transform:scaleX(1); } .brand:hover{ transform:translateY(-1px) rotate(-.2deg); transition:transform .2s ease; }
 
-    .card { background:#121217; border:1px solid #27272a; border-radius:18px; padding:20px; }
-    .btn { display:inline-block; padding:10px 14px; background:#5865f2; color:#fff; border-radius:12px; border:0; }
-    .btn:hover { background:#6e77f5; }
-    .btn-outline { display:inline-block; padding:10px 14px; border:1px solid #2f2f37; border-radius:12px; color:#e7e7ea; }
-    .btn-outline:hover { background:#1a1a1f; }
+    .card { background:linear-gradient(180deg,#0f201a,#0b1713); border:1px solid var(--line); border-radius:14px; padding:18px; box-shadow: inset 0 1px 0 rgba(255,255,255,.03), 0 2px 0 #07140f; }
+    .btn { display:inline-block; padding:10px 14px; background:linear-gradient(180deg,#1bb774,#0e7c51); color:#fff; border-radius:10px; border:1px solid #0a5a3a; box-shadow:inset 0 1px 0 #54e0a4, 0 2px 0 #073e2a; }
+    .btn:hover { filter:brightness(1.08); }
+    .btn-outline { display:inline-block; padding:10px 14px; border:1px solid var(--line); border-radius:10px; color:var(--ink); background:#0d1b16; }
+    .btn-outline:hover { background:#0f201a; }
+
+    input[type="text"]{ width:100%; padding:10px; border-radius:10px; border:1px solid var(--line); background:#0f1d18; color:#fff; }
     input[type="range"]{ width:100%; }
 
-    .grid { display:grid; gap:20px; }
-    @media(min-width: 900px){ .grid-3 { grid-template-columns: 1fr 1fr 1fr; } }
-    footer { color:#9b9ba8; text-align:center; font-size:12px; padding:40px 0 60px; border-top:1px solid #27272a; margin-top:40px; }
-
-    .alert { display:none; border:1px solid #742a2a; background:#2a1616; color:#ffd8d8; padding:10px 12px; border-radius:10px; }
-    .alert.show { display:block; }
-    .hint { display:none; color:#f6e0a5; font-size:12px; margin-top:6px; }
-    .hint.show { display:block; }
-    ol { margin-top:8px; padding-left: 22px; }
+    .alert{ display:none; border:1px solid #742a2a; background:#2a1616; color:#ffd8d8; padding:10px 12px; border-radius:10px; }
+    .alert.show{ display:block; }
+    .hint{ display:none; color:#f6e0a5; font-size:12px; margin-top:6px; }
+    .hint.show{ display:block; }
+    ol{ margin-top:10px; padding-left:22px; }
   </style>
 </head>
 <body>
@@ -53,23 +49,21 @@
     </div>
   </header>
 
-  <main class="wrap" style="padding-top: 28px;">
+  <main class="wrap" style="padding-top:20px;">
     <section class="card">
       <h1 style="margin:0 0 6px 0; font-size:28px;">Steam Game Recommender</h1>
-      <p style="margin:0; color:#cfcfda;">Content + social signals. Paste your <strong>SteamID64</strong>, adjust three weights, get a ranked list.</p>
+      <p style="margin:0;">Paste your <b>SteamID64</b>, set the three weights, and get a <b>ranked</b> list of games.</p>
     </section>
 
-    <section class="card" style="margin-top: 20px;">
+    <section class="card" style="margin-top:18px;">
       <div id="alert" class="alert"></div>
 
       <form id="steamForm" novalidate>
-        <div class="grid grid-3">
+        <div class="grid" style="display:grid; gap:16px; grid-template-columns: 1fr 1fr 1fr;">
           <label>
             <div style="font-size:14px;">SteamID64</div>
-            <input id="steamId" inputmode="numeric" pattern="^7656119\\d{10}$"
-                   placeholder="7656119XXXXXXXXXX"
-                   style="margin-top:6px;width:100%;padding:10px;border-radius:10px;border:1px solid #2f2f37;background:#0f0f12;color:#fff;" required />
-            <div style="font-size:12px;color:#9fa0b6;margin-top:6px;">
+            <input id="steamId" type="text" inputmode="numeric" pattern="^7656119\\d{10}$" placeholder="7656119XXXXXXXXXX" required />
+            <div style="font-size:12px;color:#a9d7c5;margin-top:6px;">
               Find it at <a href="https://steamid.io/lookup" target="_blank" rel="noopener">steamid.io/lookup</a> → copy <em>SteamID64</em>.
             </div>
           </label>
@@ -77,92 +71,83 @@
           <label>
             <div style="font-size:14px;">Content weight (TF-IDF)</div>
             <input id="wContent" type="range" min="0" max="1" step="0.05" value="0.60" />
-            <div style="font-size:12px;color:#9fa0b6;">Value: <span id="wContentVal">0.60</span></div>
+            <div style="font-size:12px;color:#a9d7c5;">Value: <span id="wContentVal">0.60</span></div>
           </label>
 
           <label>
             <div style="font-size:14px;">Friends’ playtime weight</div>
             <input id="wPlay" type="range" min="0" max="1" step="0.05" value="0.30" />
-            <div style="font-size:12px;color:#9fa0b6;">Value: <span id="wPlayVal">0.30</span></div>
+            <div style="font-size:12px;color:#a9d7c5;">Value: <span id="wPlayVal">0.30</span></div>
           </label>
 
-          <label style="grid-column: 1 / -1;">
+          <label style="grid-column:1 / -1;">
             <div style="font-size:14px;">Friends’ similarity weight</div>
             <input id="wSocial" type="range" min="0" max="1" step="0.05" value="0.10" />
-            <div style="font-size:12px;color:#9fa0b6;">Value: <span id="wSocialVal">0.10</span> · If results look flat, tweak weights.</div>
+            <div style="font-size:12px;color:#a9d7c5;">Value: <span id="wSocialVal">0.10</span> · Tip: if results look flat, tweak weights.</div>
           </label>
         </div>
 
-        <div style="display:flex; gap:12px; align-items:center; margin-top: 10px;">
+        <div style="display:flex; gap:12px; align-items:center; margin-top:12px;">
           <button id="recBtn" type="submit" class="btn">Get recommendations</button>
           <button id="recReset" type="button" class="btn-outline">Reset</button>
-          <span id="recStatus" style="font-size:12px;color:#9b9ba8;" aria-live="polite"></span>
+          <span id="recStatus" style="font-size:12px; color:#a9d7c5;" aria-live="polite"></span>
         </div>
 
         <ol id="recList"></ol>
-        <div id="recHint" class="hint">All signals look ~0. If your profile or recent games are private (or you haven’t played recently), the model can’t personalize. Increase <em>Content</em> weight or make playtime visible, then retry.</div>
+        <div id="recHint" class="hint">Signals look ~0. If your profile or recent games are private (or you haven’t played recently), personalization won’t work. Raise <em>Content</em> weight or make playtime visible, then retry.</div>
       </form>
     </section>
 
-    <section class="card" style="margin-top: 20px;">
+    <section class="card" style="margin-top:18px;">
       <h2 style="margin:0 0 6px 0; font-size:22px;">How it works</h2>
       <ul style="margin:0;">
-        <li>Top 20k games → TF-IDF vectors over name/description/genres.</li>
-        <li>Fetches your + friends’ recent playtime via Steam Web API.</li>
-        <li>Scores with content similarity, friends’ playtime, and friends’ similarity (weighted by sliders).</li>
+        <li>TF-IDF over top 20k games’ text (name/description/genres).</li>
+        <li>Pulls your + friends’ recent playtime via Steam Web API.</li>
+        <li>Scores with weighted: content similarity, friends’ playtime, friends’ similarity.</li>
       </ul>
     </section>
   </main>
 
-  <footer>
+  <footer style="color:#a9d7c5; text-align:center; font-size:12px; padding:36px 0 60px; border-top:2px solid #0a2e23; margin-top:28px;">
     © <span id="y"></span> Modi Goldstein-Rosenfeld · Steam Recommender
   </footer>
 
   <script>
     const CONFIG = {
-      endpoints: {
-        steamRec: 'https://steam-rec-modi-2-gdefgecbdah9hqfx.westus-01.azurewebsites.net/api/recommend'
-      },
+      endpoints: { steamRec: 'https://steam-rec-modi-2-gdefgecbdah9hqfx.westus-01.azurewebsites.net/api/recommend' },
       requestTimeoutMs: 20000
     };
-
-    const $ = (s)=>document.querySelector(s);
-    $('#y').textContent = new Date().getFullYear();
+    const $=(s)=>document.querySelector(s);
+    $('#y').textContent=new Date().getFullYear();
 
     // Live labels
-    $('#wContent').addEventListener('input', e=> $('#wContentVal').textContent = Number(e.target.value).toFixed(2));
-    $('#wPlay').addEventListener('input',   e=> $('#wPlayVal').textContent   = Number(e.target.value).toFixed(2));
-    $('#wSocial').addEventListener('input', e=> $('#wSocialVal').textContent = Number(e.target.value).toFixed(2));
+    $('#wContent').addEventListener('input', e=> $('#wContentVal').textContent=Number(e.target.value).toFixed(2));
+    $('#wPlay').addEventListener('input',   e=> $('#wPlayVal').textContent  =Number(e.target.value).toFixed(2));
+    $('#wSocial').addEventListener('input', e=> $('#wSocialVal').textContent=Number(e.target.value).toFixed(2));
+    try{ const last=localStorage.getItem('steamId'); if(last) $('#steamId').value=last; }catch{}
 
-    try { const last = localStorage.getItem('steamId'); if (last) $('#steamId').value = last; } catch {}
-
-    const setStatus=(msg,ok=false)=>{ const el=$('#recStatus'); el.textContent=msg||""; el.style.color = ok ? '#9ef5b2' : '#9b9ba8'; };
-    const showAlert=(msg)=>{ const a=$('#alert'); a.textContent=msg; a.classList.add('show'); };
+    const setStatus=(msg,ok=false)=>{ const el=$('#recStatus'); el.textContent=msg||""; el.style.color= ok ? '#9ef5b2' : '#a9d7c5'; };
+    const showAlert=(m)=>{ const a=$('#alert'); a.textContent=m; a.classList.add('show'); };
     const hideAlert=()=> $('#alert').classList.remove('show');
     const isSteam64=(s)=>/^7656119\d{10}$/.test(s);
-    const fetchWithTimeout=(url,opt={},ms=15000)=>{
-      const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms);
-      return fetch(url,{...opt,signal:c.signal}).finally(()=>clearTimeout(t));
-    };
+    const fetchWithTimeout=(url,opt={},ms=15000)=>{ const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms); return fetch(url,{...opt,signal:c.signal}).finally(()=>clearTimeout(t)); };
 
-    $('#steamForm').addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      hideAlert();
-      const btn = $('#recBtn');
+    document.getElementById('steamForm').addEventListener('submit', async (e)=>{
+      e.preventDefault(); hideAlert();
+      const btn=$('#recBtn'); const list=$('#recList'); const hint=$('#recHint');
+      list.innerHTML=''; hint.classList.remove('show'); setStatus('');
+
       const steamId=($('#steamId').value||'').trim();
-      const wContent=parseFloat($('#wContent').value||'0.6');
-      const wPlay=parseFloat($('#wPlay').value||'0.3');
-      const wSocial=parseFloat($('#wSocial').value||'0.1');
-      const list=$('#recList'); const hint=$('#recHint');
-      list.innerHTML=''; hint.classList.remove('show');
-      setStatus('');
+      if(!isSteam64(steamId)){ showAlert('Invalid SteamID64 (starts with 7656119 and has 17 digits).'); return; }
+      if(!CONFIG.endpoints.steamRec){ showAlert('Backend endpoint not configured.'); return; }
 
-      if (!isSteam64(steamId)){ showAlert('Invalid SteamID64 (must start with 7656119 and be 17 digits).'); return; }
-      if (!CONFIG.endpoints.steamRec){ showAlert('Backend endpoint not configured.'); return; }
-      try { localStorage.setItem('steamId', steamId); } catch {}
+      const wContent=parseFloat($('#wContent').value||'0.6');
+      const wPlay   =parseFloat($('#wPlay').value||'0.3');
+      const wSocial =parseFloat($('#wSocial').value||'0.1');
+      try{ localStorage.setItem('steamId', steamId); }catch{}
 
       try{
-        btn.disabled = true; setStatus('Calling backend…');
+        btn.disabled=true; setStatus('Calling backend…');
         const u=new URL(CONFIG.endpoints.steamRec);
         u.searchParams.set('steam_id', steamId);
         u.searchParams.set('k', 12);
@@ -170,40 +155,32 @@
         u.searchParams.set('w_playtime', wPlay);
         u.searchParams.set('w_social', wSocial);
 
-        const res = await fetchWithTimeout(u.toString(), { method:'GET' }, CONFIG.requestTimeoutMs);
-        if (!res.ok){
-          const txt = await res.text().catch(()=> '');
-          throw new Error(`HTTP ${res.status} — ${txt.slice(0,200) || 'request failed'}`);
-        }
+        const res=await fetchWithTimeout(u.toString(), {method:'GET'}, CONFIG.requestTimeoutMs);
+        if(!res.ok){ const txt=await res.text().catch(()=> ''); throw new Error(`HTTP ${res.status} — ${txt.slice(0,200) || 'request failed'}`); }
 
-        let data;
-        try { data = await res.json(); } catch { throw new Error('Bad response: could not parse JSON.'); }
-        if (!Array.isArray(data) || data.length===0){ setStatus('No recommendations (privacy / not enough recent playtime).'); return; }
+        let data; try{ data=await res.json(); }catch{ throw new Error('Bad response: could not parse JSON.'); }
+        if(!Array.isArray(data) || data.length===0){ setStatus('No recommendations (privacy / not enough recent playtime).'); return; }
 
-        // Rank only (no %s). If all are zero-signal, show hint.
-        let zeroSignals = 0;
+        let zeroSignals=0;
         data.slice(0,12).forEach((r)=>{
           const li=document.createElement('li');
-          const val = (typeof r.score === 'number') ? r.score : 0;
-          if (val === 0) zeroSignals++;
-          li.textContent = r.title || 'Untitled';
+          const val=(typeof r.score==='number')? r.score:0;
+          if(val===0) zeroSignals++;
+          li.textContent=r.title || 'Untitled';
           list.appendChild(li);
         });
-        if (zeroSignals === Math.min(12, data.length)) { hint.classList.add('show'); }
+        if (zeroSignals === Math.min(12, data.length)) hint.classList.add('show');
         setStatus('Done.', true);
 
       }catch(e){
-        if (e.name === 'AbortError') showAlert('Request timed out. Please try again.');
+        if(e.name==='AbortError') showAlert('Request timed out. Please try again.');
         else showAlert(e.message || 'Request failed.');
         setStatus('');
-      }finally{
-        btn.disabled=false;
-      }
+      }finally{ btn.disabled=false; }
     });
 
-    $('#recReset').addEventListener('click', ()=>{
-      hideAlert();
-      $('#steamId').value=''; $('#recList').innerHTML=''; setStatus(''); $('#recHint').classList.remove('show');
+    document.getElementById('recReset').addEventListener('click', ()=>{
+      hideAlert(); $('#steamId').value=''; $('#recList').innerHTML=''; $('#recHint').classList.remove('show'); setStatus('');
     });
   </script>
 </body>

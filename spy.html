@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -7,35 +7,30 @@
   <meta name="color-scheme" content="dark" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
   <style>
-    :root { color-scheme: dark; }
-    * { box-sizing: border-box; font-family: "Comic Sans MS","Comic Sans",cursive !important; }
-    body { margin:0; background:#0b0b0e; color:#e7e7ea; }
-    a { color:#c7caff; text-decoration:none; } a:hover { text-decoration: underline; }
+    :root { color-scheme: dark; --jets:#125740; --panel:#0b1713; --line:#1a2b24; --ink:#e8f3ed; }
+    * { box-sizing:border-box; font-family:"Comic Sans MS","Comic Sans",cursive !important; }
+    body { margin:0; background:var(--panel); color:var(--ink); }
+    a { color:#8fe9b8; } a:hover{text-decoration:underline;}
     .wrap { max-width:1040px; margin:0 auto; padding:0 16px; }
 
-    header { position: sticky; top:0; z-index:10; backdrop-filter: blur(6px); background: rgba(0,0,0,.35); border-bottom:1px solid #27272a; }
-    .row { display:flex; align-items:center; justify-content:space-between; padding:12px 0; }
-    nav a { margin-left:18px; color:#b5b5c8; } nav a.active { color:#fff; }
+    header { position:sticky; top:0; z-index:10; background:linear-gradient(180deg,rgba(18,87,64,.95),rgba(14,71,54,.92)); border-bottom:2px solid #0a2e23; box-shadow:0 2px 0 #062119; }
+    .row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; }
+    nav a { margin-left:16px; color:#c9f3e0; } nav a.active { color:#fff; text-shadow:0 1px 0 #083326; }
 
-    .brand { font-weight:800; letter-spacing:.2px; position:relative; display:inline-block; color:#fff; }
-    .brand::after{ content:""; position:absolute; left:0; bottom:-4px; height:2px; width:100%; background:linear-gradient(90deg,#96a7ff,#d7b8ff,#96a7ff); transform:scaleX(0); transform-origin:left; transition:transform .25s ease; }
-    .brand:hover::after{ transform:scaleX(1); }
-    .brand:hover{ transform: translateY(-1px); transition: transform .2s ease; }
+    .brand { font-weight:800; letter-spacing:.3px; position:relative; display:inline-block; color:#fff; text-shadow:0 1px 0 #083326; }
+    .brand::after{ content:""; position:absolute; left:0; bottom:-3px; height:3px; width:100%; background:linear-gradient(90deg,#87f6bf,#e4ffe4,#87f6bf); transform:scaleX(0); transform-origin:left; transition:transform .25s ease; }
+    .brand:hover::after{ transform:scaleX(1); } .brand:hover{ transform:translateY(-1px) rotate(-.2deg); transition:transform .2s ease; }
 
-    .card { background:#121217; border:1px solid #27272a; border-radius:18px; padding:20px; }
-    .btn { display:inline-block; padding:10px 14px; background:#5865f2; color:#fff; border-radius:12px; border:0; }
-    .btn:hover { background:#6e77f5; }
-    .btn-outline { display:inline-block; padding:10px 14px; border:1px solid #2f2f37; border-radius:12px; color:#e7e7ea; }
-    .btn-outline:hover { background:#1a1a1f; }
+    .card { background:linear-gradient(180deg,#0f201a,#0b1713); border:1px solid var(--line); border-radius:14px; padding:18px; box-shadow: inset 0 1px 0 rgba(255,255,255,.03), 0 2px 0 #07140f; }
+    .btn { display:inline-block; padding:10px 14px; background:linear-gradient(180deg,#1bb774,#0e7c51); color:#fff; border-radius:10px; border:1px solid #0a5a3a; box-shadow:inset 0 1px 0 #54e0a4, 0 2px 0 #073e2a; }
+    .btn:hover { filter:brightness(1.08); }
+    .btn-outline { display:inline-block; padding:10px 14px; border:1px solid var(--line); border-radius:10px; color:var(--ink); background:#0d1b16; }
+    .btn-outline:hover { background:#0f201a; }
 
-    input[type="text"], input[type="number"] {
-      width:100%; padding:10px; border-radius:10px; border:1px solid #2f2f37; background:#0f0f12; color:#fff;
-    }
+    input[type="text"], input[type="number"]{ width:100%; padding:10px; border-radius:10px; border:1px solid var(--line); background:#0f1d18; color:#fff; }
 
-    .grid { display:grid; gap:20px; }
-    @media(min-width: 900px){ .grid-4 { grid-template-columns: 1fr 1fr 1fr auto; } .grid-4 > * { min-width: 0; } }
-
-    footer { color:#9b9ba8; text-align:center; font-size:12px; padding:40px 0 60px; border-top:1px solid #27272a; margin-top:40px; }
+    .grid { display:grid; gap:16px; }
+    @media(min-width:900px){ .grid-4{ grid-template-columns:1fr 1fr 1fr auto; } .grid-4>*{ min-width:0; } }
   </style>
 </head>
 <body>
@@ -51,16 +46,13 @@
     </div>
   </header>
 
-  <main class="wrap" style="padding-top: 28px;">
+  <main class="wrap" style="padding-top:20px;">
     <section class="card">
-      <h1 style="margin:0 0 6px 0; font-size:28px;">S&P 500 Next-Day Forecaster</h1>
-      <p style="margin:0; color:#cfcfda;">
-        Logistic-regression on engineered price features. Backtest a long-or-cash strategy and see the equity curve + stats.
-        <strong>Start</strong> and <strong>End</strong> are required; defaults are prefilled.
-      </p>
+      <h1 style="margin:0 0 6px 0; font-size:28px;">S&amp;P 500 Next-Day Forecaster</h1>
+      <p style="margin:0;">Logistic-regression on engineered price features. Backtest a long-or-cash strategy and see the equity curve + stats. <b>Start</b> and <b>End</b> are required (defaults are filled in).</p>
     </section>
 
-    <section class="card" style="margin-top: 20px;">
+    <section class="card" style="margin-top:18px;">
       <div id="alert" style="display:none; border:1px solid #742a2a; background:#2a1616; color:#ffd8d8; padding:10px 12px; border-radius:10px; margin-bottom:10px;"></div>
 
       <form id="spyForm" novalidate>
@@ -72,33 +64,33 @@
           <label>
             <div style="font-size:14px;">Start (YYYY-MM-DD)</div>
             <input id="startDate" type="text" pattern="^\\d{4}-\\d{2}-\\d{2}$" required />
-            <div style="font-size:12px;color:#9fa0b6;margin-top:6px;">Default: 2019-01-01</div>
+            <div style="font-size:12px;color:#a9d7c5;margin-top:6px;">Default: 2019-01-01</div>
           </label>
           <label>
             <div style="font-size:14px;">End (YYYY-MM-DD)</div>
             <input id="endDate" type="text" pattern="^\\d{4}-\\d{2}-\\d{2}$" required />
-            <div style="font-size:12px;color:#9fa0b6;margin-top:6px;">Default: today</div>
+            <div style="font-size:12px;color:#a9d7c5;margin-top:6px;">Default: today</div>
           </label>
           <div style="display:flex; align-items:flex-end; gap:12px;">
             <button id="runBacktest" type="submit" class="btn">Run backtest</button>
             <button id="resetBacktest" type="button" class="btn-outline">Reset</button>
           </div>
         </div>
-        <div id="btStatus" style="margin-top:8px; font-size:12px; color:#9b9ba8;" aria-live="polite"></div>
+        <div id="btStatus" style="margin-top:8px; font-size:12px; color:#a9d7c5;" aria-live="polite"></div>
       </form>
 
       <div style="margin-top:14px;">
         <canvas id="equityChart" height="180"></canvas>
       </div>
       <div class="grid" style="grid-template-columns: repeat(4, 1fr); gap:12px; margin-top:12px;">
-        <div class="btn-outline" style="padding:10px; border-radius:12px;"><div style="font-size:12px;color:#9b9ba8;">Total return</div><div id="statTR" style="font-weight:700; font-size:18px;">—</div></div>
-        <div class="btn-outline" style="padding:10px; border-radius:12px;"><div style="font-size:12px;color:#9b9ba8;">CAGR</div><div id="statCAGR" style="font-weight:700; font-size:18px;">—</div></div>
-        <div class="btn-outline" style="padding:10px; border-radius:12px;"><div style="font-size:12px;color:#9b9ba8;">Sharpe</div><div id="statSharpe" style="font-weight:700; font-size:18px;">—</div></div>
-        <div class="btn-outline" style="padding:10px; border-radius:12px;"><div style="font-size:12px;color:#9b9ba8;">Max drawdown</div><div id="statMDD" style="font-weight:700; font-size:18px;">—</div></div>
+        <div class="btn-outline" style="padding:10px; border-radius:12px;"><div style="font-size:12px;color:#a9d7c5;">Total return</div><div id="statTR" style="font-weight:700; font-size:18px;">—</div></div>
+        <div class="btn-outline" style="padding:10px; border-radius:12px;"><div style="font-size:12px;color:#a9d7c5;">CAGR</div><div id="statCAGR" style="font-weight:700; font-size:18px;">—</div></div>
+        <div class="btn-outline" style="padding:10px; border-radius:12px;"><div style="font-size:12px;color:#a9d7c5;">Sharpe</div><div id="statSharpe" style="font-weight:700; font-size:18px;">—</div></div>
+        <div class="btn-outline" style="padding:10px; border-radius:12px;"><div style="font-size:12px;color:#a9d7c5;">Max drawdown</div><div id="statMDD" style="font-weight:700; font-size:18px;">—</div></div>
       </div>
     </section>
 
-    <section class="card" style="margin-top: 20px;">
+    <section class="card" style="margin-top:18px;">
       <h2 style="margin:0 0 6px 0; font-size:22px;">How it works</h2>
       <ul style="margin:0;">
         <li>Daily SPY from Yahoo Finance since 2005.</li>
@@ -108,67 +100,72 @@
     </section>
   </main>
 
-  <footer>
+  <footer style="color:#a9d7c5; text-align:center; font-size:12px; padding:36px 0 60px; border-top:2px solid #0a2e23; margin-top:28px;">
     © <span id="y"></span> Modi Goldstein-Rosenfeld · SPY Forecaster
   </footer>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+
 
   <script>
-    const CONFIG = { endpoints: { spyForecast: 'https://spy-forecast-modi-2-gka4h2cng6dhcvcf.westus-01.azurewebsites.net/api/spy-backtest' }, requestTimeoutMs: 20000 };
+    const CONFIG = { endpoints:{ spyForecast:'https://spy-forecast-modi-2-gka4h2cng6dhcvcf.westus-01.azurewebsites.net/api/spy-backtest' }, requestTimeoutMs:20000 };
     const $=(s)=>document.querySelector(s);
-    $('#y').textContent = new Date().getFullYear();
+    $('#y').textContent=new Date().getFullYear();
 
-    // Prefill required defaults
-    (function(){
-      const startDefault='2019-01-01';
-      const endDefault=new Date().toISOString().slice(0,10);
-      $('#startDate').value=startDefault; $('#endDate').value=endDefault;
-    })();
+    // Defaults for required dates
+    (function(){ const start='2019-01-01'; const end=new Date().toISOString().slice(0,10); $('#startDate').value=start; $('#endDate').value=end; })();
 
-    const setStatus=(msg,ok=false)=>{ const el=$('#btStatus'); el.textContent=msg||""; el.style.color = ok ? '#9ef5b2' : '#9b9ba8'; };
+    const setStatus=(m,ok=false)=>{ const el=$('#btStatus'); el.textContent=m||""; el.style.color= ok ? '#9ef5b2' : '#a9d7c5'; };
     const showAlert=(m)=>{ const a=$('#alert'); a.textContent=m; a.style.display='block'; };
     const hideAlert=()=>{ $('#alert').style.display='none'; };
     const fetchWithTimeout=(url,opt={},ms=15000)=>{ const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms); return fetch(url,{...opt,signal:c.signal}).finally(()=>clearTimeout(t)); };
     const isISO=(s)=>/^\d{4}-\d{2}-\d{2}$/.test(s);
+    
 
     let chart;
     function ensureChart(){
       if(chart) return chart;
       const ctx=document.getElementById('equityChart').getContext('2d');
-      const grad=ctx.createLinearGradient(0,0,0,200); grad.addColorStop(0,'rgba(88,101,242,0.28)'); grad.addColorStop(1,'rgba(88,101,242,0.00)');
-      chart=new Chart(ctx,{ type:'line', data:{ labels:[], datasets:[{ label:'Equity (×)', data:[], borderColor:'#5865f2', backgroundColor:grad, fill:true, borderWidth:2, pointRadius:0, tension:0.18 }] },
-        options:{ responsive:true, animation:{duration:220}, interaction:{mode:'index', intersect:false},
+      const grad=ctx.createLinearGradient(0,0,0,200); grad.addColorStop(0,'rgba(27,183,116,0.28)'); grad.addColorStop(1,'rgba(27,183,116,0.00)');
+      chart=new Chart(ctx,{ type:'line', data:{ labels:[], datasets:[{ label:'Equity (×)', data:[], borderColor:'#1bb774', backgroundColor:grad, fill:true, borderWidth:2, pointRadius:0, tension:0.18 }] },
+        options:{ responsive:true, animation:{duration:220}, interaction:{mode:'index', intersect:false}, 
           scales:{ y:{ beginAtZero:false, grid:{ color:'rgba(255,255,255,.08)' }}, x:{ display:false }},
-          plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label:c=>`× ${c.parsed.y.toFixed(3)}` }} }});
+          plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label:c=>`× ${c.parsed.y.toFixed(3)}` }} }}});
       return chart;
     }
 
     async function runBacktest(){
       hideAlert(); const btn=$('#runBacktest'); const ch=ensureChart();
       const thr=parseFloat($('#thr').value||'0.55'); const start=($('#startDate').value||'').trim(); const end=($('#endDate').value||'').trim();
-
-      if(!(thr>=0 && thr<=1)) { showAlert('Threshold must be between 0 and 1.'); return; }
-      if(!isISO(start) || !isISO(end)) { showAlert('Start/End must be YYYY-MM-DD.'); return; }
-      if(new Date(start) > new Date(end)) { showAlert('Start must be on or before End.'); return; }
+      if(!(thr>=0 && thr<=1)){ showAlert('Threshold must be 0–1.'); return; }
+      if(!isISO(start) || !isISO(end)){ showAlert('Start/End must be YYYY-MM-DD.'); return; }
+      if(new Date(start) > new Date(end)){ showAlert('Start must be on or before End.'); return; }
       if(!CONFIG.endpoints.spyForecast){ showAlert('Backend endpoint not configured.'); return; }
 
       try{
         btn.disabled=true; setStatus('Running backtest…');
         const res=await fetchWithTimeout(CONFIG.endpoints.spyForecast,{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ threshold:thr, start, end }) }, CONFIG.requestTimeoutMs);
         if(!res.ok){ const txt=await res.text(); throw new Error(`HTTP ${res.status}: ${txt.slice(0,200)}`); }
-        const data=await res.json(); const eq=Array.isArray(data.equity)? data.equity:[]; if(eq.length===0){ setStatus('No equity data returned for the selected dates.'); return; }
+        const data=await res.json(); const eq=Array.isArray(data.equity)? data.equity:[]; if(eq.length===0){ setStatus('No equity data for that window.'); return; }
         ch.data.labels=eq.map((_,i)=>i); ch.data.datasets[0].data=eq; ch.update();
         const pct=(x)=> (Number(x)||0).toFixed(2);
-        $('#statTR').textContent=`${pct(data.total_ret)}%`; $('#statCAGR').textContent=`${pct(data.cagr)}%`;
-        $('#statSharpe').textContent= data.sharpe!=null? pct(data.sharpe):'—'; $('#statMDD').textContent= data.max_drawdown!=null? `${pct(data.max_drawdown)}%`:'—';
-        setStatus('Done.',true);
-      }catch(e){ if(e.name==='AbortError') showAlert('Request timed out. Please try again.'); else showAlert(e.message||'Request failed.'); setStatus(''); }
-      finally{ btn.disabled=false; }
+        document.getElementById('statTR').textContent   = `${pct(data.total_ret)}%`;
+        document.getElementById('statCAGR').textContent = `${pct(data.cagr)}%`;
+        document.getElementById('statSharpe').textContent = data.sharpe!=null? pct(data.sharpe) : '—';
+        document.getElementById('statMDD').textContent    = data.max_drawdown!=null? `${pct(data.max_drawdown)}%` : '—';
+        setStatus('Done.', true);
+      }catch(e){
+        if(e.name==='AbortError') showAlert('Request timed out. Try again.');
+        else showAlert(e.message || 'Request failed.');
+        setStatus('');
+      }finally{ btn.disabled=false; }
     }
 
-    $('#spyForm').addEventListener('submit', (e)=>{ e.preventDefault(); runBacktest(); });
-    $('#resetBacktest').addEventListener('click', ()=>{ hideAlert(); const ch=ensureChart(); ch.data.labels=[]; ch.data.datasets[0].data=[]; ch.update();
-      ['statTR','statCAGR','statSharpe','statMDD'].forEach(id=> $('#'+id).textContent='—'); setStatus('');
-      const endDefault=new Date().toISOString().slice(0,10); $('#startDate').value='2019-01-01'; $('#endDate').value=endDefault; $('#thr').value=0.55; });
+    document.getElementById('spyForm').addEventListener('submit', (e)=>{ e.preventDefault(); runBacktest(); });
+    document.getElementById('resetBacktest').addEventListener('click', ()=>{
+      hideAlert(); const ch=ensureChart(); ch.data.labels=[]; ch.data.datasets[0].data=[]; ch.update();
+      ['statTR','statCAGR','statSharpe','statMDD'].forEach(id=> document.getElementById(id).textContent='—'); setStatus('');
+      const endDefault=new Date().toISOString().slice(0,10); document.getElementById('startDate').value='2019-01-01'; document.getElementById('endDate').value=endDefault; document.getElementById('thr').value=0.55;
+    });
   </script>
 </body>
 </html>
