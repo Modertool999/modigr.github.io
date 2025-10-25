@@ -5,85 +5,102 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>SPY Forecaster · Modi</title>
   <meta name="color-scheme" content="dark" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script>tailwind={config:{darkMode:'class',theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','Segoe UI','Helvetica Neue','Arial']}}}}};</script>
-  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
   <style>
-    body { background:#0b0b0e; color:#e7e7ea; }
-    .card { background:#121217; border:1px solid #27272a; border-radius:1.25rem; }
-    .btn { background:#5b55ee; color:#fff; }
-    .btn:hover { background:#6c69f3; }
-    .outline { border:1px solid #2f2f37; }
-    a { color:#b8befe; }
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; font-family: "Comic Sans MS","Comic Sans",cursive !important; }
+    body { margin:0; background:#0b0b0e; color:#e7e7ea; }
+    a { color:#c7caff; text-decoration:none; } a:hover { text-decoration: underline; }
+    .wrap { max-width:1040px; margin:0 auto; padding:0 16px; }
+
+    header { position: sticky; top:0; z-index:10; backdrop-filter: blur(6px); background: rgba(0,0,0,.35); border-bottom:1px solid #27272a; }
+    .row { display:flex; align-items:center; justify-content:space-between; padding:12px 0; }
+    nav a { margin-left:18px; color:#b5b5c8; } nav a.active { color:#fff; }
+
+    .brand { font-weight:800; letter-spacing:.2px; position:relative; display:inline-block; color:#fff; }
+    .brand::after{ content:""; position:absolute; left:0; bottom:-4px; height:2px; width:100%; background:linear-gradient(90deg,#96a7ff,#d7b8ff,#96a7ff); transform:scaleX(0); transform-origin:left; transition:transform .25s ease; }
+    .brand:hover::after{ transform:scaleX(1); }
+    .brand:hover{ transform: translateY(-1px); transition: transform .2s ease; }
+
+    .card { background:#121217; border:1px solid #27272a; border-radius:18px; padding:20px; }
+    .btn { display:inline-block; padding:10px 14px; background:#5865f2; color:#fff; border-radius:12px; border:0; }
+    .btn:hover { background:#6e77f5; }
+    .btn-outline { display:inline-block; padding:10px 14px; border:1px solid #2f2f37; border-radius:12px; color:#e7e7ea; }
+    .btn-outline:hover { background:#1a1a1f; }
+
+    input[type="text"], input[type="number"] {
+      width:100%; padding:10px; border-radius:10px; border:1px solid #2f2f37; background:#0f0f12; color:#fff;
+    }
+
+    .grid { display:grid; gap:20px; }
+    @media(min-width: 900px){ .grid-4 { grid-template-columns: 1fr 1fr 1fr auto; } .grid-4 > * { min-width: 0; } }
+
+    footer { color:#9b9ba8; text-align:center; font-size:12px; padding:40px 0 60px; border-top:1px solid #27272a; margin-top:40px; }
   </style>
 </head>
 <body>
-  <header class="sticky top-0 z-40 backdrop-blur bg-black/30 border-b border-zinc-800">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-      <a href="index.html" class="font-extrabold tracking-tight text-lg">Modi</a>
-      <nav class="hidden sm:flex items-center gap-6 text-sm text-zinc-400">
+  <header>
+    <div class="wrap row">
+      <a class="brand" href="index.html">Modi Goldstein-Rosenfeld</a>
+      <nav>
         <a href="index.html">Home</a>
         <a href="steam.html">Steam</a>
-        <a href="spy.html" class="text-zinc-200">SPY</a>
-        <a href="https://github.com/Modertool999/spy-forecast" target="_blank">Repo ↗</a>
+        <a class="active" href="spy.html">SPY</a>
+        <a href="https://github.com/Modertool999/spy-forecast" target="_blank" rel="noopener">Repo ↗</a>
       </nav>
     </div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-4 py-10">
-    <section class="card p-6">
-      <h1 class="text-3xl font-bold">S&P 500 Next-Day Forecaster</h1>
-      <p class="text-sm text-zinc-300 mt-1 max-w-2xl">
-        Logistic-regression on engineered price features. Backtest a long-or-cash strategy and see the equity curve and stats.
-        <strong>Start</strong> and <strong>End</strong> dates are required; defaults are provided.
+  <main class="wrap" style="padding-top: 28px;">
+    <section class="card">
+      <h1 style="margin:0 0 6px 0; font-size:28px;">S&P 500 Next-Day Forecaster</h1>
+      <p style="margin:0; color:#cfcfda;">
+        Logistic-regression on engineered price features. Backtest a long-or-cash strategy and see the equity curve + stats.
+        <strong>Start</strong> and <strong>End</strong> are required; defaults are prefilled.
       </p>
     </section>
 
-    <section class="mt-6 card p-6">
-      <div id="alert" class="hidden mb-4 rounded-lg border border-red-800 bg-red-950/40 px-3 py-2 text-sm text-red-300"></div>
+    <section class="card" style="margin-top: 20px;">
+      <div id="alert" style="display:none; border:1px solid #742a2a; background:#2a1616; color:#ffd8d8; padding:10px 12px; border-radius:10px; margin-bottom:10px;"></div>
 
-      <form id="spyForm" class="space-y-4" novalidate>
-        <div class="grid sm:grid-cols-4 gap-4">
-          <label class="text-sm">Threshold
-            <input id="thr" type="number" min="0" max="1" step="0.01" value="0.55"
-                   class="mt-1 rounded-xl outline bg-transparent px-3 py-2 w-28" required />
+      <form id="spyForm" novalidate>
+        <div class="grid grid-4">
+          <label>
+            <div style="font-size:14px;">Threshold</div>
+            <input id="thr" type="number" min="0" max="1" step="0.01" value="0.55" />
           </label>
-
-          <label class="text-sm">Start (YYYY-MM-DD)
-            <input id="startDate" type="text" pattern="^\\d{4}-\\d{2}-\\d{2}$" required
-                   class="mt-1 rounded-xl outline bg-transparent px-3 py-2 w-full" />
-            <div class="text-xs text-zinc-400 mt-1">Default: 2019-01-01</div>
+          <label>
+            <div style="font-size:14px;">Start (YYYY-MM-DD)</div>
+            <input id="startDate" type="text" pattern="^\\d{4}-\\d{2}-\\d{2}$" required />
+            <div style="font-size:12px;color:#9fa0b6;margin-top:6px;">Default: 2019-01-01</div>
           </label>
-
-          <label class="text-sm">End (YYYY-MM-DD)
-            <input id="endDate" type="text" pattern="^\\d{4}-\\d{2}-\\d{2}$" required
-                   class="mt-1 rounded-xl outline bg-transparent px-3 py-2 w-full" />
-            <div class="text-xs text-zinc-400 mt-1">Default: today</div>
+          <label>
+            <div style="font-size:14px;">End (YYYY-MM-DD)</div>
+            <input id="endDate" type="text" pattern="^\\d{4}-\\d{2}-\\d{2}$" required />
+            <div style="font-size:12px;color:#9fa0b6;margin-top:6px;">Default: today</div>
           </label>
-
-          <div class="flex items-end gap-2">
-            <button id="runBacktest" type="submit" class="btn rounded-xl px-4 py-2 disabled:opacity-50">Run backtest</button>
-            <button id="resetBacktest" type="button" class="rounded-xl px-4 py-2 outline">Reset</button>
+          <div style="display:flex; align-items:flex-end; gap:12px;">
+            <button id="runBacktest" type="submit" class="btn">Run backtest</button>
+            <button id="resetBacktest" type="button" class="btn-outline">Reset</button>
           </div>
         </div>
-        <div class="flex items-center gap-2 text-xs text-zinc-400" aria-live="polite"><span id="btStatus"></span></div>
+        <div id="btStatus" style="margin-top:8px; font-size:12px; color:#9b9ba8;" aria-live="polite"></div>
       </form>
 
-      <div class="mt-5">
-        <canvas id="equityChart" height="170"></canvas>
+      <div style="margin-top:14px;">
+        <canvas id="equityChart" height="180"></canvas>
       </div>
-      <div id="btStatsWrap" class="mt-4 grid sm:grid-cols-4 gap-3">
-        <div class="rounded-xl outline p-3"><div class="text-xs text-zinc-400">Total return</div><div id="statTR" class="text-lg font-semibold">—</div></div>
-        <div class="rounded-xl outline p-3"><div class="text-xs text-zinc-400">CAGR</div><div id="statCAGR" class="text-lg font-semibold">—</div></div>
-        <div class="rounded-xl outline p-3"><div class="text-xs text-zinc-400">Sharpe</div><div id="statSharpe" class="text-lg font-semibold">—</div></div>
-        <div class="rounded-xl outline p-3"><div class="text-xs text-zinc-400">Max drawdown</div><div id="statMDD" class="text-lg font-semibold">—</div></div>
+      <div class="grid" style="grid-template-columns: repeat(4, 1fr); gap:12px; margin-top:12px;">
+        <div class="btn-outline" style="padding:10px; border-radius:12px;"><div style="font-size:12px;color:#9b9ba8;">Total return</div><div id="statTR" style="font-weight:700; font-size:18px;">—</div></div>
+        <div class="btn-outline" style="padding:10px; border-radius:12px;"><div style="font-size:12px;color:#9b9ba8;">CAGR</div><div id="statCAGR" style="font-weight:700; font-size:18px;">—</div></div>
+        <div class="btn-outline" style="padding:10px; border-radius:12px;"><div style="font-size:12px;color:#9b9ba8;">Sharpe</div><div id="statSharpe" style="font-weight:700; font-size:18px;">—</div></div>
+        <div class="btn-outline" style="padding:10px; border-radius:12px;"><div style="font-size:12px;color:#9b9ba8;">Max drawdown</div><div id="statMDD" style="font-weight:700; font-size:18px;">—</div></div>
       </div>
     </section>
 
-    <section class="mt-6 card p-6">
-      <h2 class="text-lg font-semibold">How it works</h2>
-      <ul class="list-disc pl-5 text-sm mt-2 space-y-1 text-zinc-300">
+    <section class="card" style="margin-top: 20px;">
+      <h2 style="margin:0 0 6px 0; font-size:22px;">How it works</h2>
+      <ul style="margin:0;">
         <li>Daily SPY from Yahoo Finance since 2005.</li>
         <li>Lagged features (returns, RSI, overnight gap).</li>
         <li>Train/valid/test, long-or-cash strategy (2 bps trading costs).</li>
@@ -91,106 +108,67 @@
     </section>
   </main>
 
-  <footer class="py-10 text-center text-xs text-zinc-500">© <span id="y"></span> Modi Goldstein-Rosenfeld · SPY Forecaster</footer>
+  <footer>
+    © <span id="y"></span> Modi Goldstein-Rosenfeld · SPY Forecaster
+  </footer>
 
   <script>
-    const CONFIG = {
-      endpoints: {
-        spyForecast: 'https://spy-forecast-modi-2-gka4h2cng6dhcvcf.westus-01.azurewebsites.net/api/spy-backtest'
-      },
-      requestTimeoutMs: 20000
-    };
-
+    const CONFIG = { endpoints: { spyForecast: 'https://spy-forecast-modi-2-gka4h2cng6dhcvcf.westus-01.azurewebsites.net/api/spy-backtest' }, requestTimeoutMs: 20000 };
     const $=(s)=>document.querySelector(s);
     $('#y').textContent = new Date().getFullYear();
 
     // Prefill required defaults
-    (function setDefaults(){
-      const startDefault = '2019-01-01';
-      const today = new Date(); const endDefault = today.toISOString().slice(0,10);
-      $('#startDate').value = startDefault;
-      $('#endDate').value = endDefault;
+    (function(){
+      const startDefault='2019-01-01';
+      const endDefault=new Date().toISOString().slice(0,10);
+      $('#startDate').value=startDefault; $('#endDate').value=endDefault;
     })();
 
-    // Helpers
-    const setStatus=(el,msg,ok=false)=>{ el.textContent=msg; el.className=`text-xs ${ok? 'text-green-400':'text-zinc-400'}` };
-    const showAlert=(msg)=>{ const a=$('#alert'); a.textContent=msg; a.classList.remove('hidden'); };
-    const hideAlert=()=> $('#alert').classList.add('hidden');
+    const setStatus=(msg,ok=false)=>{ const el=$('#btStatus'); el.textContent=msg||""; el.style.color = ok ? '#9ef5b2' : '#9b9ba8'; };
+    const showAlert=(m)=>{ const a=$('#alert'); a.textContent=m; a.style.display='block'; };
+    const hideAlert=()=>{ $('#alert').style.display='none'; };
     const fetchWithTimeout=(url,opt={},ms=15000)=>{ const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms); return fetch(url,{...opt,signal:c.signal}).finally(()=>clearTimeout(t)); };
     const isISO=(s)=>/^\d{4}-\d{2}-\d{2}$/.test(s);
 
-    // Chart
     let chart;
     function ensureChart(){
       if(chart) return chart;
       const ctx=document.getElementById('equityChart').getContext('2d');
-      const grad=ctx.createLinearGradient(0,0,0,220); grad.addColorStop(0,'rgba(91,85,238,0.28)'); grad.addColorStop(1,'rgba(91,85,238,0.00)');
-      chart=new Chart(ctx,{
-        type:'line',
-        data:{ labels:[], datasets:[{ label:'Equity (×)', data:[], borderColor:'#5b55ee', backgroundColor:grad, fill:true, borderWidth:2, pointRadius:0, tension:0.18 }] },
+      const grad=ctx.createLinearGradient(0,0,0,200); grad.addColorStop(0,'rgba(88,101,242,0.28)'); grad.addColorStop(1,'rgba(88,101,242,0.00)');
+      chart=new Chart(ctx,{ type:'line', data:{ labels:[], datasets:[{ label:'Equity (×)', data:[], borderColor:'#5865f2', backgroundColor:grad, fill:true, borderWidth:2, pointRadius:0, tension:0.18 }] },
         options:{ responsive:true, animation:{duration:220}, interaction:{mode:'index', intersect:false},
           scales:{ y:{ beginAtZero:false, grid:{ color:'rgba(255,255,255,.08)' }}, x:{ display:false }},
-          plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label:c=>`× ${c.parsed.y.toFixed(3)}` }}}
-        }
-      });
+          plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label:c=>`× ${c.parsed.y.toFixed(3)}` }} }});
       return chart;
     }
 
     async function runBacktest(){
-      hideAlert();
-      const status=$('#btStatus');
-      const btn=$('#runBacktest');
-      const thr=parseFloat($('#thr').value || '0.55');
-      const start=($('#startDate').value||'').trim();
-      const end=($('#endDate').value||'').trim();
+      hideAlert(); const btn=$('#runBacktest'); const ch=ensureChart();
+      const thr=parseFloat($('#thr').value||'0.55'); const start=($('#startDate').value||'').trim(); const end=($('#endDate').value||'').trim();
 
-      // Validate required inputs
-      if (!isFinite(thr) || thr < 0 || thr > 1) { showAlert('Threshold must be a number between 0 and 1.'); return; }
-      if (!isISO(start) || !isISO(end)) { showAlert('Start and End must be YYYY-MM-DD.'); return; }
-      if (new Date(start) > new Date(end)) { showAlert('Start date must be on or before End date.'); return; }
-
+      if(!(thr>=0 && thr<=1)) { showAlert('Threshold must be between 0 and 1.'); return; }
+      if(!isISO(start) || !isISO(end)) { showAlert('Start/End must be YYYY-MM-DD.'); return; }
+      if(new Date(start) > new Date(end)) { showAlert('Start must be on or before End.'); return; }
       if(!CONFIG.endpoints.spyForecast){ showAlert('Backend endpoint not configured.'); return; }
 
-      const ch=ensureChart();
       try{
-        btn.disabled=true; setStatus(status,'Running backtest…');
-        const body={ threshold: thr, start, end };
-        const res=await fetchWithTimeout(CONFIG.endpoints.spyForecast,{
-          method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(body)
-        }, CONFIG.requestTimeoutMs);
-
+        btn.disabled=true; setStatus('Running backtest…');
+        const res=await fetchWithTimeout(CONFIG.endpoints.spyForecast,{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ threshold:thr, start, end }) }, CONFIG.requestTimeoutMs);
         if(!res.ok){ const txt=await res.text(); throw new Error(`HTTP ${res.status}: ${txt.slice(0,200)}`); }
-
-        const data=await res.json();
-        const eq=Array.isArray(data.equity)? data.equity:[];
-        if(eq.length===0){ setStatus(status,'No equity data returned for the selected dates.'); return; }
-
+        const data=await res.json(); const eq=Array.isArray(data.equity)? data.equity:[]; if(eq.length===0){ setStatus('No equity data returned for the selected dates.'); return; }
         ch.data.labels=eq.map((_,i)=>i); ch.data.datasets[0].data=eq; ch.update();
         const pct=(x)=> (Number(x)||0).toFixed(2);
-        $('#statTR').textContent   = `${pct(data.total_ret)}%`;
-        $('#statCAGR').textContent = `${pct(data.cagr)}%`;
-        $('#statSharpe').textContent = data.sharpe!=null? pct(data.sharpe) : '—';
-        $('#statMDD').textContent    = data.max_drawdown!=null? `${pct(data.max_drawdown)}%` : '—';
-        setStatus(status,'Done.',true);
-      }catch(e){ console.error(e); showAlert(e.message || 'Request failed.'); setStatus(status,''); }
+        $('#statTR').textContent=`${pct(data.total_ret)}%`; $('#statCAGR').textContent=`${pct(data.cagr)}%`;
+        $('#statSharpe').textContent= data.sharpe!=null? pct(data.sharpe):'—'; $('#statMDD').textContent= data.max_drawdown!=null? `${pct(data.max_drawdown)}%`:'—';
+        setStatus('Done.',true);
+      }catch(e){ if(e.name==='AbortError') showAlert('Request timed out. Please try again.'); else showAlert(e.message||'Request failed.'); setStatus(''); }
       finally{ btn.disabled=false; }
     }
 
-    document.getElementById('spyForm').addEventListener('submit', (e)=>{ e.preventDefault(); runBacktest(); });
-
-    document.getElementById('resetBacktest').addEventListener('click', ()=>{
-      hideAlert();
-      const ch=ensureChart(); ch.data.labels=[]; ch.data.datasets[0].data=[]; ch.update();
-      ['statTR','statCAGR','statSharpe','statMDD'].forEach(id=> $('#'+id).textContent='—'); $('#btStatus').textContent='';
-      // Reset to defaults again
-      (function setDefaults(){
-        const startDefault = '2019-01-01';
-        const today = new Date(); const endDefault = today.toISOString().slice(0,10);
-        $('#startDate').value = startDefault;
-        $('#endDate').value = endDefault;
-        $('#thr').value = 0.55;
-      })();
-    });
+    $('#spyForm').addEventListener('submit', (e)=>{ e.preventDefault(); runBacktest(); });
+    $('#resetBacktest').addEventListener('click', ()=>{ hideAlert(); const ch=ensureChart(); ch.data.labels=[]; ch.data.datasets[0].data=[]; ch.update();
+      ['statTR','statCAGR','statSharpe','statMDD'].forEach(id=> $('#'+id).textContent='—'); setStatus('');
+      const endDefault=new Date().toISOString().slice(0,10); $('#startDate').value='2019-01-01'; $('#endDate').value=endDefault; $('#thr').value=0.55; });
   </script>
 </body>
 </html>

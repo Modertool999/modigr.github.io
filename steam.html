@@ -5,99 +5,120 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Steam Game Recommender · Modi</title>
   <meta name="color-scheme" content="dark" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script>tailwind={config:{darkMode:'class',theme:{extend:{fontFamily:{sans:['Inter','ui-sans-serif','system-ui','Segoe UI','Helvetica Neue','Arial']}}}}};</script>
-  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background:#0b0b0e; color:#e7e7ea; }
-    .card { background:#121217; border:1px solid #27272a; border-radius:1.25rem; }
-    .btn { background:#5b55ee; color:#fff; }
-    .btn:hover { background:#6c69f3; }
-    .outline { border:1px solid #2f2f37; }
-    a { color:#b8befe; }
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; font-family: "Comic Sans MS","Comic Sans",cursive !important; }
+    body { margin:0; background:#0b0b0e; color:#e7e7ea; }
+    a { color: #c7caff; text-decoration:none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width:1040px; margin:0 auto; padding:0 16px; }
+
+    header { position: sticky; top:0; z-index:10; backdrop-filter: blur(6px); background: rgba(0,0,0,.35); border-bottom:1px solid #27272a; }
+    .row { display:flex; align-items:center; justify-content:space-between; padding:12px 0; }
+    nav a { margin-left:18px; color:#b5b5c8; } nav a.active { color:#fff; }
+
+    .brand { font-weight:800; letter-spacing:.2px; position:relative; display:inline-block; color:#fff; }
+    .brand::after{ content:""; position:absolute; left:0; bottom:-4px; height:2px; width:100%; background:linear-gradient(90deg,#96a7ff,#d7b8ff,#96a7ff); transform:scaleX(0); transform-origin:left; transition:transform .25s ease; }
+    .brand:hover::after{ transform:scaleX(1); }
+    .brand:hover{ transform: translateY(-1px); transition: transform .2s ease; }
+
+    .card { background:#121217; border:1px solid #27272a; border-radius:18px; padding:20px; }
+    .btn { display:inline-block; padding:10px 14px; background:#5865f2; color:#fff; border-radius:12px; border:0; }
+    .btn:hover { background:#6e77f5; }
+    .btn-outline { display:inline-block; padding:10px 14px; border:1px solid #2f2f37; border-radius:12px; color:#e7e7ea; }
+    .btn-outline:hover { background:#1a1a1f; }
+    input[type="range"]{ width:100%; }
+
+    .grid { display:grid; gap:20px; }
+    @media(min-width: 900px){ .grid-3 { grid-template-columns: 1fr 1fr 1fr; } }
+    footer { color:#9b9ba8; text-align:center; font-size:12px; padding:40px 0 60px; border-top:1px solid #27272a; margin-top:40px; }
+
+    .alert { display:none; border:1px solid #742a2a; background:#2a1616; color:#ffd8d8; padding:10px 12px; border-radius:10px; }
+    .alert.show { display:block; }
+    .hint { display:none; color:#f6e0a5; font-size:12px; margin-top:6px; }
+    .hint.show { display:block; }
+    ol { margin-top:8px; padding-left: 22px; }
   </style>
 </head>
 <body>
-  <header class="sticky top-0 z-40 backdrop-blur bg-black/30 border-b border-zinc-800">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-      <a href="index.html" class="font-extrabold tracking-tight text-lg">Modi</a>
-      <nav class="hidden sm:flex items-center gap-6 text-sm text-zinc-400">
+  <header>
+    <div class="wrap row">
+      <a class="brand" href="index.html">Modi Goldstein-Rosenfeld</a>
+      <nav>
         <a href="index.html">Home</a>
-        <a href="steam.html" class="text-zinc-200">Steam</a>
+        <a class="active" href="steam.html">Steam</a>
         <a href="spy.html">SPY</a>
-        <a href="https://github.com/Modertool999/game-recommender" target="_blank">Repo ↗</a>
+        <a href="https://github.com/Modertool999/game-recommender" target="_blank" rel="noopener">Repo ↗</a>
       </nav>
     </div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-4 py-10">
-    <section class="card p-6">
-      <h1 class="text-3xl font-bold">Steam Game Recommender</h1>
-      <p class="text-sm text-zinc-300 mt-1 max-w-2xl">
-        Content-based filtering over the top 20k games (TF-IDF on name/description/genres) blended with social signals (friends’ playtime & friends’ similarity).
-        Paste your <strong>SteamID64</strong> and tune the three weights.
-      </p>
+  <main class="wrap" style="padding-top: 28px;">
+    <section class="card">
+      <h1 style="margin:0 0 6px 0; font-size:28px;">Steam Game Recommender</h1>
+      <p style="margin:0; color:#cfcfda;">Content + social signals. Paste your <strong>SteamID64</strong>, adjust three weights, get a ranked list.</p>
     </section>
 
-    <section class="mt-6 card p-6">
-      <div id="alert" class="hidden mb-4 rounded-lg border border-red-800 bg-red-950/40 px-3 py-2 text-sm text-red-300"></div>
+    <section class="card" style="margin-top: 20px;">
+      <div id="alert" class="alert"></div>
 
-      <form id="steamForm" class="space-y-4" novalidate>
-        <div class="grid md:grid-cols-3 gap-4">
-          <label class="text-sm">SteamID64
-            <input id="steamId" inputmode="numeric" pattern="^7656119\d{10}$"
-                   class="mt-1 w-full rounded-xl outline bg-transparent px-3 py-2"
-                   placeholder="7656119XXXXXXXXXX" required />
-            <div class="text-xs text-zinc-400 mt-1">
-              Find it at <a class="underline" href="https://steamid.io/lookup" target="_blank">steamid.io/lookup</a> → copy <em>SteamID64</em>.
+      <form id="steamForm" novalidate>
+        <div class="grid grid-3">
+          <label>
+            <div style="font-size:14px;">SteamID64</div>
+            <input id="steamId" inputmode="numeric" pattern="^7656119\\d{10}$"
+                   placeholder="7656119XXXXXXXXXX"
+                   style="margin-top:6px;width:100%;padding:10px;border-radius:10px;border:1px solid #2f2f37;background:#0f0f12;color:#fff;" required />
+            <div style="font-size:12px;color:#9fa0b6;margin-top:6px;">
+              Find it at <a href="https://steamid.io/lookup" target="_blank" rel="noopener">steamid.io/lookup</a> → copy <em>SteamID64</em>.
             </div>
           </label>
 
-          <label class="text-sm">Content weight (TF-IDF)
-            <input id="wContent" type="range" min="0" max="1" step="0.05" value="0.60" class="mt-3 w-full" />
-            <div class="text-xs text-zinc-400">Value: <span id="wContentVal">0.60</span></div>
+          <label>
+            <div style="font-size:14px;">Content weight (TF-IDF)</div>
+            <input id="wContent" type="range" min="0" max="1" step="0.05" value="0.60" />
+            <div style="font-size:12px;color:#9fa0b6;">Value: <span id="wContentVal">0.60</span></div>
           </label>
 
-          <label class="text-sm">Friends' playtime weight
-            <input id="wPlay" type="range" min="0" max="1" step="0.05" value="0.30" class="mt-3 w-full" />
-            <div class="text-xs text-zinc-400">Value: <span id="wPlayVal">0.30</span></div>
+          <label>
+            <div style="font-size:14px;">Friends’ playtime weight</div>
+            <input id="wPlay" type="range" min="0" max="1" step="0.05" value="0.30" />
+            <div style="font-size:12px;color:#9fa0b6;">Value: <span id="wPlayVal">0.30</span></div>
           </label>
 
-          <label class="text-sm md:col-span-3">Friends' similarity weight
-            <input id="wSocial" type="range" min="0" max="1" step="0.05" value="0.10" class="mt-3 w-full" />
-            <div class="text-xs text-zinc-400">Value: <span id="wSocialVal">0.10</span> · Tip: if results look flat, adjust the weights.</div>
+          <label style="grid-column: 1 / -1;">
+            <div style="font-size:14px;">Friends’ similarity weight</div>
+            <input id="wSocial" type="range" min="0" max="1" step="0.05" value="0.10" />
+            <div style="font-size:12px;color:#9fa0b6;">Value: <span id="wSocialVal">0.10</span> · If results look flat, tweak weights.</div>
           </label>
         </div>
 
-        <div class="flex items-center gap-3">
-          <button id="recBtn" type="submit" class="btn rounded-xl px-4 py-2 disabled:opacity-50">Get recommendations</button>
-          <button id="recReset" type="button" class="rounded-xl px-4 py-2 outline">Reset</button>
-          <span id="recStatus" class="text-xs text-zinc-400" aria-live="polite"></span>
+        <div style="display:flex; gap:12px; align-items:center; margin-top: 10px;">
+          <button id="recBtn" type="submit" class="btn">Get recommendations</button>
+          <button id="recReset" type="button" class="btn-outline">Reset</button>
+          <span id="recStatus" style="font-size:12px;color:#9b9ba8;" aria-live="polite"></span>
         </div>
 
-        <!-- Ranked list -->
-        <ol id="recList" class="mt-3 text-sm list-decimal pl-6 space-y-1"></ol>
-        <p id="recHint" class="hidden mt-2 text-xs text-amber-300">
-          All signals look ~0. If your Steam profile or recent games are private—or you haven’t played recently—the model can’t personalize.
-          Try increasing <em>Content</em> weight or making playtime visible, then retry.
-        </p>
+        <ol id="recList"></ol>
+        <div id="recHint" class="hint">All signals look ~0. If your profile or recent games are private (or you haven’t played recently), the model can’t personalize. Increase <em>Content</em> weight or make playtime visible, then retry.</div>
       </form>
     </section>
 
-    <section class="mt-6 card p-6">
-      <h2 class="text-lg font-semibold">How it works</h2>
-      <ul class="list-disc pl-5 text-sm mt-2 space-y-1 text-zinc-300">
-        <li>Catalog of top 20k games with name/description/genres → TF-IDF vectors.</li>
-        <li>Aggregates your + friends’ recent playtime via Steam Web API.</li>
-        <li>Scores candidates with weighted signals: content similarity, friends’ playtime, friends’ similarity.</li>
+    <section class="card" style="margin-top: 20px;">
+      <h2 style="margin:0 0 6px 0; font-size:22px;">How it works</h2>
+      <ul style="margin:0;">
+        <li>Top 20k games → TF-IDF vectors over name/description/genres.</li>
+        <li>Fetches your + friends’ recent playtime via Steam Web API.</li>
+        <li>Scores with content similarity, friends’ playtime, and friends’ similarity (weighted by sliders).</li>
       </ul>
     </section>
   </main>
 
-  <footer class="py-10 text-center text-xs text-zinc-500">© <span id="y"></span> Modi Goldstein-Rosenfeld · Steam Recommender</footer>
+  <footer>
+    © <span id="y"></span> Modi Goldstein-Rosenfeld · Steam Recommender
+  </footer>
 
   <script>
-    // === CONFIG ===
     const CONFIG = {
       endpoints: {
         steamRec: 'https://steam-rec-modi-2-gdefgecbdah9hqfx.westus-01.azurewebsites.net/api/recommend'
@@ -108,23 +129,23 @@
     const $ = (s)=>document.querySelector(s);
     $('#y').textContent = new Date().getFullYear();
 
-    // Live label updates
+    // Live labels
     $('#wContent').addEventListener('input', e=> $('#wContentVal').textContent = Number(e.target.value).toFixed(2));
     $('#wPlay').addEventListener('input',   e=> $('#wPlayVal').textContent   = Number(e.target.value).toFixed(2));
     $('#wSocial').addEventListener('input', e=> $('#wSocialVal').textContent = Number(e.target.value).toFixed(2));
 
     try { const last = localStorage.getItem('steamId'); if (last) $('#steamId').value = last; } catch {}
 
-    const setStatus=(el,msg,ok=false)=>{ el.textContent=msg; el.className=`text-xs ${ok? 'text-green-400':'text-zinc-400'}` };
-    const showAlert=(msg)=>{ const a=$('#alert'); a.textContent=msg; a.classList.remove('hidden'); };
-    const hideAlert=()=> $('#alert').classList.add('hidden');
+    const setStatus=(msg,ok=false)=>{ const el=$('#recStatus'); el.textContent=msg||""; el.style.color = ok ? '#9ef5b2' : '#9b9ba8'; };
+    const showAlert=(msg)=>{ const a=$('#alert'); a.textContent=msg; a.classList.add('show'); };
+    const hideAlert=()=> $('#alert').classList.remove('show');
     const isSteam64=(s)=>/^7656119\d{10}$/.test(s);
     const fetchWithTimeout=(url,opt={},ms=15000)=>{
       const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms);
       return fetch(url,{...opt,signal:c.signal}).finally(()=>clearTimeout(t));
     };
 
-    document.getElementById('steamForm').addEventListener('submit', async (e)=>{
+    $('#steamForm').addEventListener('submit', async (e)=>{
       e.preventDefault();
       hideAlert();
       const btn = $('#recBtn');
@@ -132,26 +153,16 @@
       const wContent=parseFloat($('#wContent').value||'0.6');
       const wPlay=parseFloat($('#wPlay').value||'0.3');
       const wSocial=parseFloat($('#wSocial').value||'0.1');
-      const status=$('#recStatus');
-      const list=$('#recList');
-      const hint=$('#recHint');
-      list.innerHTML=''; hint.classList.add('hidden');
+      const list=$('#recList'); const hint=$('#recHint');
+      list.innerHTML=''; hint.classList.remove('show');
+      setStatus('');
 
-      // Validate ID early
-      if (!isSteam64(steamId)){
-        showAlert('Invalid SteamID64 (must start with 7656119 and be 17 digits).');
-        return;
-      }
-      if (!CONFIG.endpoints.steamRec){
-        showAlert('Backend endpoint not configured.');
-        return;
-      }
-
+      if (!isSteam64(steamId)){ showAlert('Invalid SteamID64 (must start with 7656119 and be 17 digits).'); return; }
+      if (!CONFIG.endpoints.steamRec){ showAlert('Backend endpoint not configured.'); return; }
       try { localStorage.setItem('steamId', steamId); } catch {}
 
       try{
-        btn.disabled = true; setStatus(status,'Calling backend…');
-
+        btn.disabled = true; setStatus('Calling backend…');
         const u=new URL(CONFIG.endpoints.steamRec);
         u.searchParams.set('steam_id', steamId);
         u.searchParams.set('k', 12);
@@ -160,43 +171,31 @@
         u.searchParams.set('w_social', wSocial);
 
         const res = await fetchWithTimeout(u.toString(), { method:'GET' }, CONFIG.requestTimeoutMs);
-
         if (!res.ok){
           const txt = await res.text().catch(()=> '');
-          // Common Steam privacy/invalid-key surfaces as 400/403 from your API
           throw new Error(`HTTP ${res.status} — ${txt.slice(0,200) || 'request failed'}`);
         }
 
         let data;
-        try { data = await res.json(); }
-        catch { throw new Error('Bad response: could not parse JSON.'); }
+        try { data = await res.json(); } catch { throw new Error('Bad response: could not parse JSON.'); }
+        if (!Array.isArray(data) || data.length===0){ setStatus('No recommendations (privacy / not enough recent playtime).'); return; }
 
-        if (!Array.isArray(data) || data.length===0){
-          setStatus(status,'No recommendations (privacy / not enough recent playtime).');
-          return;
-        }
-
-        // RANK ONLY — no percent scores
+        // Rank only (no %s). If all are zero-signal, show hint.
         let zeroSignals = 0;
-        data.slice(0,12).forEach((r, i)=>{
+        data.slice(0,12).forEach((r)=>{
           const li=document.createElement('li');
-          const title = r.title || 'Untitled';
-          // track if backend delivered zero signal; if all are zero, show hint
           const val = (typeof r.score === 'number') ? r.score : 0;
           if (val === 0) zeroSignals++;
-          li.textContent = title;
+          li.textContent = r.title || 'Untitled';
           list.appendChild(li);
         });
-
-        if (zeroSignals === Math.min(12, data.length)) { hint.classList.remove('hidden'); }
-        setStatus(status,'Done.',true);
+        if (zeroSignals === Math.min(12, data.length)) { hint.classList.add('show'); }
+        setStatus('Done.', true);
 
       }catch(e){
-        console.error(e);
-        // Friendly timeout message
-        if (e.name === 'AbortError') showAlert('Request timed out. Please try again (or reduce server load).');
+        if (e.name === 'AbortError') showAlert('Request timed out. Please try again.');
         else showAlert(e.message || 'Request failed.');
-        setStatus(status,'');
+        setStatus('');
       }finally{
         btn.disabled=false;
       }
@@ -204,10 +203,7 @@
 
     $('#recReset').addEventListener('click', ()=>{
       hideAlert();
-      $('#steamId').value='';
-      $('#recList').innerHTML='';
-      $('#recStatus').textContent='';
-      $('#recHint').classList.add('hidden');
+      $('#steamId').value=''; $('#recList').innerHTML=''; setStatus(''); $('#recHint').classList.remove('show');
     });
   </script>
 </body>
