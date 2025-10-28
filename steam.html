@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Video Game Recommender · Modi</title>
   <meta name="color-scheme" content="dark" />
-  <!-- Comic Neue (mobile-safe) -->
+  <!-- Inter: clean sans-serif -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    :root{ color-scheme:dark; --jets:#125740; --panel:#0b1713; --line:#1a2b24; --ink:#e8f3ed; --ui-font:"Comic Sans MS","Comic Sans","Comic Neue",cursive; }
+    :root{ color-scheme:dark; --jets:#125740; --panel:#0b1713; --line:#1a2b24; --ink:#e8f3ed; --ui-font:"Inter","Segoe UI","Helvetica Neue",Arial,sans-serif; }
     *{ box-sizing:border-box; }
     body, button, input, select, textarea{ font-family:var(--ui-font) !important; }
     body{ margin:0; background:var(--panel); color:var(--ink); }
@@ -117,17 +117,13 @@
     </section>
   </main>
 
-  <footer style="color:#a9d7c5; text-align:center; font-size:12px; padding:36px 0 60px; border-top:2px solid #0a2e23; margin-top:28px;">
-    Made with love (and Azure) by Modi Goldstein-Rosenfeld
-  </footer>
-
   <script>
     const CONFIG = {
       endpoints: { steamRec: 'https://steam-rec-modi-2-gdefgecbdah9hqfx.westus-01.azurewebsites.net/api/recommend' },
       requestTimeoutMs: 20000
     };
     const $=(s)=>document.querySelector(s);
-    $('#y').textContent=new Date().getFullYear();
+    const yearEl=$('#y'); if(yearEl) yearEl.textContent=new Date().getFullYear();
 
     $('#wContent').addEventListener('input', e=> $('#wContentVal').textContent=Number(e.target.value).toFixed(2));
     $('#wPlay').addEventListener('input',   e=> $('#wPlayVal').textContent  =Number(e.target.value).toFixed(2));
