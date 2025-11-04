@@ -177,7 +177,7 @@
           }
           const masked=maskSecrets(detail).slice(0,200);
           const friendly= res.status===401 || /unauthorized/i.test(masked)
-            ? 'Steam rejected the request, most likely becaause that profile does not allow friend-list access.'
+            ? 'Steam rejected the request, most likely because that profile does not allow friend-list access.'
             : (masked || 'request failed');
           throw new Error(`HTTP ${res.status} — ${friendly}`);
         }
