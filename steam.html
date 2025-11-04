@@ -119,28 +119,40 @@
   </main>
 
   <script>
-    const PROD_ENDPOINT = 'https://steam-rec-modi-2-gdefgecbdah9hqfx.westus-01.azurewebsites.net/api/recommend';
-    const LOCAL_ENDPOINT = 'http://127.0.0.1:5000/api/recommend';
+    const PROD_ENDPOINTS = [
+      'https://steam-rec-modi-2-gdefgecbdah9hqfx.westus-01.azurewebsites.net/api/recommend',
+      'https://steam-rec-modi-2-gdefgecbdah9hqfx.azurewebsites.net/api/recommend',
+      'https://steam-rec-modi-2.azurewebsites.net/api/recommend'
+    ];
+    const LOCAL_ENDPOINTS = [
+      'http://127.0.0.1:5000/api/recommend',
+      'http://localhost:5000/api/recommend'
+    ];
+    const host = window.location.hostname || '';
+    const proto = window.location.protocol;
     const qs = new URLSearchParams(window.location.search);
     const override = qs.get('steamBackend');
     const overrideMode = override === 'local'
       ? 'local'
       : (override === 'prod' ? 'prod' : null);
 
-    let chosenEndpoint = PROD_ENDPOINT;
-    if (override && override.startsWith('http')) {
-      chosenEndpoint = override;
-    } else if (overrideMode === 'local') {
-      chosenEndpoint = LOCAL_ENDPOINT;
-    } else if (overrideMode === 'prod') {
-      chosenEndpoint = PROD_ENDPOINT;
-    }
-
-    const useLocal = chosenEndpoint === LOCAL_ENDPOINT;
+    const candidateEndpoints = (() => {
+      if (override && override.startsWith('http')) return [override];
+      if (overrideMode === 'local') return [...LOCAL_ENDPOINTS];
+      if (overrideMode === 'prod') return [...PROD_ENDPOINTS];
+      if (proto === 'file:' || ['localhost', '127.0.0.1', '0.0.0.0', '[::1]'].includes(host)) {
+        return [...LOCAL_ENDPOINTS];
+      }
+      return [...PROD_ENDPOINTS];
+    })();
+    const isLocalEndpoint = (endpoint)=>/^https?:\/\/(127\.0\.0\.1|localhost|0\.0\.0\.0|\[::1\])/.test(endpoint || '');
+    const primaryEndpoint = candidateEndpoints[0] || PROD_ENDPOINTS[0];
+    const useLocalDefault = isLocalEndpoint(primaryEndpoint);
 
     const CONFIG = {
-      endpoints: { steamRec: chosenEndpoint },
-      requestTimeoutMs: useLocal ? 15000 : 30000
+      endpoints: candidateEndpoints,
+      requestTimeoutMs: useLocalDefault ? 15000 : 30000,
+      lastEndpoint: null
     };
     const $=(s)=>document.querySelector(s);
     const yearEl=$('#y'); if(yearEl) yearEl.textContent=new Date().getFullYear();
@@ -167,7 +179,7 @@
 
       const steamId=($('#steamId').value||'').trim();
       if(!isSteam64(steamId)){ showAlert('Invalid SteamID64 (starts with 7656119 and has 17 digits).'); return; }
-      if(!CONFIG.endpoints.steamRec){ showAlert('Backend endpoint not configured.'); return; }
+      if(!CONFIG.endpoints || CONFIG.endpoints.length===0){ showAlert('Backend endpoint not configured.'); return; }
 
       const wContent=parseFloat($('#wContent').value||'0.6');
       const wPlay   =parseFloat($('#wPlay').value||'0.3');
@@ -176,29 +188,57 @@
 
       try{
         btn.disabled=true; setStatus('Calling backend…');
-        const u=new URL(CONFIG.endpoints.steamRec);
-        u.searchParams.set('steam_id', steamId);
-        u.searchParams.set('k', 12);
-        u.searchParams.set('w_content', wContent);
-        u.searchParams.set('w_playtime', wPlay);
-        u.searchParams.set('w_social', wSocial);
 
-        const res=await fetchWithTimeout(u.toString(), {method:'GET'}, CONFIG.requestTimeoutMs);
-        if(!res.ok){
-          const txt=await res.text().catch(()=> '');
-          let detail='';
-          if(txt){
-            try{
-              const parsed=JSON.parse(txt);
-              if(parsed && typeof parsed.error==='string') detail=parsed.error;
-              else detail=txt;
-            }catch{ detail=txt; }
+        const endpoints=[...CONFIG.endpoints];
+        let res=null;
+        let lastErr=null;
+        let usedEndpoint=null;
+        for(let i=0;i<endpoints.length;i++){
+          const endpoint=endpoints[i];
+          usedEndpoint=endpoint;
+          const url=new URL(endpoint);
+          url.searchParams.set('steam_id', steamId);
+          url.searchParams.set('k', 12);
+          url.searchParams.set('w_content', wContent);
+          url.searchParams.set('w_playtime', wPlay);
+          url.searchParams.set('w_social', wSocial);
+          try{
+            const attempt=await fetchWithTimeout(url.toString(), {method:'GET'}, CONFIG.requestTimeoutMs);
+            if(!attempt.ok){
+              const txt=await attempt.text().catch(()=> '');
+              let detail='';
+              if(txt){
+                try{
+                  const parsed=JSON.parse(txt);
+                  if(parsed && typeof parsed.error==='string') detail=parsed.error;
+                  else detail=txt;
+                }catch{ detail=txt; }
+              }
+              const masked=maskSecrets(detail).slice(0,200);
+              const friendly= attempt.status===401 || /unauthorized/i.test(masked)
+                ? 'Steam rejected the request, most likely because that profile does not allow friend-list access.'
+                : (masked || 'request failed');
+              lastErr=new Error(`HTTP ${attempt.status} — ${friendly}`);
+              lastErr.endpoint=endpoint;
+              continue;
+            }
+            res=attempt;
+            CONFIG.lastEndpoint=endpoint;
+            if(i>0){
+              const dedup=[endpoint,...endpoints.filter((value,idx)=>idx!==i && value!==endpoint)];
+              CONFIG.endpoints=dedup;
+            }
+            break;
+          }catch(fetchErr){
+            lastErr=fetchErr;
+            lastErr.endpoint=endpoint;
           }
-          const masked=maskSecrets(detail).slice(0,200);
-          const friendly= res.status===401 || /unauthorized/i.test(masked)
-            ? 'Steam rejected the request, most likely because that profile does not allow friend-list access.'
-            : (masked || 'request failed');
-          throw new Error(`HTTP ${res.status} — ${friendly}`);
+        }
+        if(!res){
+          if(lastErr) throw lastErr;
+          const err=new Error('No backend endpoint reachable.');
+          err.endpoint=usedEndpoint || endpoints[0];
+          throw err;
         }
 
         let data; try{ data=await res.json(); }catch{ throw new Error('Bad response: could not parse JSON.'); }
@@ -222,11 +262,13 @@
         setStatus(`Showing ${showCount} of ${totalCount} recommendations.`, true);
 
       }catch(e){
+        const endpointHint = (e && e.endpoint) || CONFIG.lastEndpoint || CONFIG.endpoints[0] || '';
+        const localErr = isLocalEndpoint(endpointHint);
         if(e.name==='AbortError') showAlert('Request timed out. This Steam ID’s data looks especially large, so I added a limit to keep Azure computation manageable.');
-        else if(e && e.message === 'Failed to fetch'){
-          const tip = useLocal
+        else if(e && (e.message === 'Failed to fetch' || e instanceof TypeError)){
+          const tip = localErr
             ? 'Could not reach the local backend. Is the Flask server running on port 5000?'
-            : 'Could not reach the hosted backend. Please refresh and try again in a bit.';
+            : `Could not reach ${endpointHint || 'the hosted backend'}. Please refresh and try again in a bit.`;
           showAlert(`${tip} (Network error)`);
         }else showAlert(e.message || 'Request failed.');
         setStatus('');
