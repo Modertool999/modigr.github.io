@@ -136,6 +136,10 @@
     const hideAlert=()=> $('#alert').classList.remove('show');
     const isSteam64=(s)=>/^7656119\d{10}$/.test(s);
     const fetchWithTimeout=(url,opt={},ms=15000)=>{ const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms); return fetch(url,{...opt,signal:c.signal}).finally(()=>clearTimeout(t)); };
+    const maskSecrets=(str='')=>str
+      .replace(/key=([^&"\s]+)/gi,'key=***')
+      .replace(/apikey=([^&"\s]+)/gi,'apikey=***')
+      .replace(/api_key=([^&"\s]+)/gi,'api_key=***');
 
     document.getElementById('steamForm').addEventListener('submit', async (e)=>{
       e.preventDefault(); hideAlert();
@@ -161,7 +165,22 @@
         u.searchParams.set('w_social', wSocial);
 
         const res=await fetchWithTimeout(u.toString(), {method:'GET'}, CONFIG.requestTimeoutMs);
-        if(!res.ok){ const txt=await res.text().catch(()=> ''); throw new Error(`HTTP ${res.status} — ${txt.slice(0,200) || 'request failed'}`); }
+        if(!res.ok){
+          const txt=await res.text().catch(()=> '');
+          let detail='';
+          if(txt){
+            try{
+              const parsed=JSON.parse(txt);
+              if(parsed && typeof parsed.error==='string') detail=parsed.error;
+              else detail=txt;
+            }catch{ detail=txt; }
+          }
+          const masked=maskSecrets(detail).slice(0,200);
+          const friendly= res.status===401 || /unauthorized/i.test(masked)
+            ? 'Steam rejected the request, most likely becaause that profile does not allow friend-list access.'
+            : (masked || 'request failed');
+          throw new Error(`HTTP ${res.status} — ${friendly}`);
+        }
 
         let data; try{ data=await res.json(); }catch{ throw new Error('Bad response: could not parse JSON.'); }
         if(!Array.isArray(data) || data.length===0){ setStatus('No recommendations (privacy / not enough recent playtime).'); return; }
