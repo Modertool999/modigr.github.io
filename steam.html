@@ -119,9 +119,24 @@
   </main>
 
   <script>
+    const PROD_ENDPOINT = 'https://steam-rec-modi-2-gdefgecbdah9hqfx.westus-01.azurewebsites.net/api/recommend';
+    const LOCAL_ENDPOINT = 'http://127.0.0.1:5000/api/recommend';
+    const host = window.location.hostname || '';
+    const proto = window.location.protocol;
+    const qs = new URLSearchParams(window.location.search);
+    const overrideEndpoint = qs.get('steamBackend');
+    const overrideMode = overrideEndpoint === 'local'
+      ? 'local'
+      : (overrideEndpoint === 'prod' ? 'prod' : null);
+    const isLocalHost = ['localhost', '127.0.0.1', '0.0.0.0', '[::1]'].includes(host);
+    const useLocal = overrideMode ? overrideMode === 'local' : (proto === 'file:' || isLocalHost);
+    const chosenEndpoint = overrideEndpoint && overrideEndpoint.startsWith('http')
+      ? overrideEndpoint
+      : (useLocal ? LOCAL_ENDPOINT : PROD_ENDPOINT);
+
     const CONFIG = {
-      endpoints: { steamRec: 'https://steam-rec-modi-2-gdefgecbdah9hqfx.westus-01.azurewebsites.net/api/recommend' },
-      requestTimeoutMs: 20000
+      endpoints: { steamRec: chosenEndpoint },
+      requestTimeoutMs: useLocal ? 15000 : 20000
     };
     const $=(s)=>document.querySelector(s);
     const yearEl=$('#y'); if(yearEl) yearEl.textContent=new Date().getFullYear();
@@ -194,15 +209,16 @@
           if(!Number.isFinite(val)) val=0;
           if(val===0) zeroSignals++;
           const title=r.title || 'Untitled';
-          const scoreLabel=`Similarity: ${val.toFixed(3)}`;
-          li.textContent=`${idx+1}. ${title} — ${scoreLabel}`;
+          li.textContent=title;
+          li.dataset.rank=(idx+1).toString();
+          li.dataset.score=val.toFixed(3);
           list.appendChild(li);
         });
         if (zeroSignals === showCount) hint.classList.add('show');
         setStatus(`Showing ${showCount} of ${totalCount} recommendations.`, true);
 
       }catch(e){
-        if(e.name==='AbortError') showAlert('Request timed out. This Steam ID’s data looks especially large, so I added a limit to keep Azure computation manageable. Please try again in a bit.');
+        if(e.name==='AbortError') showAlert('Request timed out. This Steam ID’s data looks especially large, so I added a limit to keep Azure computation manageable.');
         else showAlert(e.message || 'Request failed.');
         setStatus('');
       }finally{ btn.disabled=false; }
