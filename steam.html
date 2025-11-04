@@ -79,19 +79,19 @@
           </label>
 
           <label>
-            <div style="font-size:14px;">Content weight (TF-IDF)</div>
+            <div style="font-size:14px;">Weight: Your recent playtime</div>
             <input id="wContent" type="range" min="0" max="1" step="0.05" value="0.60" />
             <div style="font-size:12px;color:#a9d7c5;">Value: <span id="wContentVal">0.60</span></div>
           </label>
 
           <label>
-            <div style="font-size:14px;">Friends’ playtime weight</div>
+            <div style="font-size:14px;">Weight: Friends’ playtime</div>
             <input id="wPlay" type="range" min="0" max="1" step="0.05" value="0.30" />
             <div style="font-size:12px;color:#a9d7c5;">Value: <span id="wPlayVal">0.30</span></div>
           </label>
 
           <label style="grid-column:1 / -1;">
-            <div style="font-size:14px;">Friends’ similarity weight</div>
+            <div style="font-size:14px;">Weight: Similarity to friends’ plays</div>
             <input id="wSocial" type="range" min="0" max="1" step="0.05" value="0.10" />
             <div style="font-size:12px;color:#a9d7c5;">Value: <span id="wSocialVal">0.10</span> · If results look flat, tweak weights.</div>
           </label>
@@ -104,7 +104,7 @@
         </div>
 
         <ol id="recList"></ol>
-        <div id="recHint" class="hint">Signals look ~0. If your profile or recent games are private (or you haven’t played recently), personalization won’t work. Raise <em>Content</em> weight or make playtime visible, then retry.</div>
+        <div id="recHint" class="hint">Signals look ~0. If your profile or recent games are private (or you haven’t played recently), personalization won’t work. Raise the <em>Your recent playtime</em> weight or make playtime visible, then retry.</div>
       </form>
     </section>
 
@@ -113,7 +113,7 @@
       <ul style="margin:0;">
         <li>TF-IDF over top games’ name/description/genres.</li>
         <li>Pulls your + friends’ recent playtime via Steam Web API.</li>
-        <li>Scores with weighted: content similarity, friends’ playtime, friends’ similarity.</li>
+        <li>Blends signals from: your recent playtime, friends’ playtime, similarity to friends’ plays.</li>
       </ul>
     </section>
   </main>
@@ -185,19 +185,24 @@
         let data; try{ data=await res.json(); }catch{ throw new Error('Bad response: could not parse JSON.'); }
         if(!Array.isArray(data) || data.length===0){ setStatus('No recommendations (privacy / not enough recent playtime).'); return; }
 
+        const totalCount=data.length;
+        const showCount=Math.min(12,totalCount);
         let zeroSignals=0;
-        data.slice(0,12).forEach((r)=>{
+        data.slice(0,showCount).forEach((r,idx)=>{
           const li=document.createElement('li');
-          const val=(typeof r.score==='number')? r.score:0;
+          let val=typeof r.score==='number'? r.score:parseFloat(r.score);
+          if(!Number.isFinite(val)) val=0;
           if(val===0) zeroSignals++;
-          li.textContent=r.title || 'Untitled';
+          const title=r.title || 'Untitled';
+          const scoreLabel=`Similarity: ${val.toFixed(3)}`;
+          li.textContent=`${idx+1}. ${title} — ${scoreLabel}`;
           list.appendChild(li);
         });
-        if (zeroSignals === Math.min(12, data.length)) hint.classList.add('show');
-        setStatus('Done.', true);
+        if (zeroSignals === showCount) hint.classList.add('show');
+        setStatus(`Showing ${showCount} of ${totalCount} recommendations.`, true);
 
       }catch(e){
-        if(e.name==='AbortError') showAlert('Request timed out. Please try again.');
+        if(e.name==='AbortError') showAlert('Request timed out. This Steam ID’s data looks especially large, so I added a limit to keep Azure computation manageable. Please try again in a bit.');
         else showAlert(e.message || 'Request failed.');
         setStatus('');
       }finally{ btn.disabled=false; }
