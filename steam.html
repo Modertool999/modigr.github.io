@@ -121,18 +121,22 @@
   <script>
     const PROD_ENDPOINT = 'https://steam-rec-modi-2-gdefgecbdah9hqfx.westus-01.azurewebsites.net/api/recommend';
     const LOCAL_ENDPOINT = 'http://127.0.0.1:5000/api/recommend';
-    const host = window.location.hostname || '';
-    const proto = window.location.protocol;
     const qs = new URLSearchParams(window.location.search);
-    const overrideEndpoint = qs.get('steamBackend');
-    const overrideMode = overrideEndpoint === 'local'
+    const override = qs.get('steamBackend');
+    const overrideMode = override === 'local'
       ? 'local'
-      : (overrideEndpoint === 'prod' ? 'prod' : null);
-    const isLocalHost = ['localhost', '127.0.0.1', '0.0.0.0', '[::1]'].includes(host);
-    const useLocal = overrideMode ? overrideMode === 'local' : (proto === 'file:' || isLocalHost);
-    const chosenEndpoint = overrideEndpoint && overrideEndpoint.startsWith('http')
-      ? overrideEndpoint
-      : (useLocal ? LOCAL_ENDPOINT : PROD_ENDPOINT);
+      : (override === 'prod' ? 'prod' : null);
+
+    let chosenEndpoint = PROD_ENDPOINT;
+    if (override && override.startsWith('http')) {
+      chosenEndpoint = override;
+    } else if (overrideMode === 'local') {
+      chosenEndpoint = LOCAL_ENDPOINT;
+    } else if (overrideMode === 'prod') {
+      chosenEndpoint = PROD_ENDPOINT;
+    }
+
+    const useLocal = chosenEndpoint === LOCAL_ENDPOINT;
 
     const CONFIG = {
       endpoints: { steamRec: chosenEndpoint },
@@ -219,7 +223,12 @@
 
       }catch(e){
         if(e.name==='AbortError') showAlert('Request timed out. This Steam ID’s data looks especially large, so I added a limit to keep Azure computation manageable.');
-        else showAlert(e.message || 'Request failed.');
+        else if(e && e.message === 'Failed to fetch'){
+          const tip = useLocal
+            ? 'Could not reach the local backend. Is the Flask server running on port 5000?'
+            : 'Could not reach the hosted backend. Please refresh and try again in a bit.';
+          showAlert(`${tip} (Network error)`);
+        }else showAlert(e.message || 'Request failed.');
         setStatus('');
       }finally{ btn.disabled=false; }
     });
