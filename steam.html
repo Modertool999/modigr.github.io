@@ -154,6 +154,8 @@
     };
     const $=(s)=>document.querySelector(s);
     const yearEl=$('#y'); if(yearEl) yearEl.textContent=new Date().getFullYear();
+    const hintEl=$('#recHint');
+    const hintDefaultText=hintEl?hintEl.textContent:"";
 
     $('#wContent').addEventListener('input', e=> $('#wContentVal').textContent=Number(e.target.value).toFixed(2));
     $('#wPlay').addEventListener('input',   e=> $('#wPlayVal').textContent  =Number(e.target.value).toFixed(2));
@@ -173,7 +175,12 @@
     document.getElementById('steamForm').addEventListener('submit', async (e)=>{
       e.preventDefault(); hideAlert();
       const btn=$('#recBtn'); const list=$('#recList'); const hint=$('#recHint');
-      list.innerHTML=''; hint.classList.remove('show'); setStatus('');
+      list.innerHTML='';
+      if(hint){
+        hint.classList.remove('show');
+        hint.textContent=hintDefaultText;
+      }
+      setStatus('');
 
       const steamId=($('#steamId').value||'').trim();
       if(!isSteam64(steamId)){ showAlert('Invalid SteamID64 (starts with 7656119 and has 17 digits).'); return; }
@@ -239,13 +246,37 @@
           throw err;
         }
 
-        let data; try{ data=await res.json(); }catch{ throw new Error('Bad response: could not parse JSON.'); }
-        if(!Array.isArray(data) || data.length===0){ setStatus('No recommendations (privacy / not enough recent playtime).'); return; }
+        let payload; try{ payload=await res.json(); }catch{ throw new Error('Bad response: could not parse JSON.'); }
+        const results = Array.isArray(payload)
+          ? payload
+          : (payload && typeof payload === 'object' && Array.isArray(payload.results) ? payload.results : []);
+        const meta = (!Array.isArray(payload) && payload && typeof payload === 'object') ? (payload.meta || null) : null;
+        if(!Array.isArray(results) || results.length===0){
+          const emptyMsg = meta && meta.features && meta.features.friends_requested
+            ? 'No recommendations. Steam returned little to no recent activity for this profile.'
+            : 'No recommendations (privacy / not enough recent playtime).';
+          setStatus(emptyMsg);
+          if(hint && meta){
+            const hintMsgs=[];
+            const feats=meta.features||{};
+            if(feats.friends_requested && feats.friends_accessible===0){
+              hintMsgs.push('Friends data appears private, so social weights cannot contribute yet.');
+            }
+            if(feats.used_library_fallback){
+              hintMsgs.push('Falling back to lifetime play hours because no recent playtime was available.');
+            }
+            if(hintMsgs.length){
+              hint.textContent=hintMsgs.join(' ');
+              hint.classList.add('show');
+            }
+          }
+          return;
+        }
 
-        const totalCount=data.length;
+        const totalCount=results.length;
         const showCount=Math.min(12,totalCount);
         let zeroSignals=0;
-        data.slice(0,showCount).forEach((r,idx)=>{
+        results.slice(0,showCount).forEach((r,idx)=>{
           const li=document.createElement('li');
           let val=typeof r.score==='number'? r.score:parseFloat(r.score);
           if(!Number.isFinite(val)) val=0;
@@ -256,8 +287,39 @@
           li.dataset.score=val.toFixed(3);
           list.appendChild(li);
         });
-        if (zeroSignals === showCount) hint.classList.add('show');
-        setStatus(`Showing ${showCount} of ${totalCount} recommendations.`, true);
+        const hintMsgs=[];
+        if(meta){
+          const signals=meta.signals||{};
+          const friendsAvailable=Boolean((signals.friends_play && signals.friends_play.available) || (signals.friends_sim && signals.friends_sim.available));
+          if(!friendsAvailable && (wPlay>0.0001 || wSocial>0.0001)){
+            hintMsgs.push('Friends data is private or unavailable, so the friend weights cannot influence results right now.');
+          }
+          const feats=meta.features||{};
+          if(feats.used_library_fallback){
+            hintMsgs.push('No recent playtime detected; using lifetime playtime as a fallback signal.');
+          }
+        }
+        if (zeroSignals === showCount) hintMsgs.push(hintDefaultText);
+        if(hint && hintMsgs.length){
+          hint.textContent=hintMsgs.join(' ');
+          hint.classList.add('show');
+        }
+
+        let statusMsg=`Showing ${showCount} of ${totalCount} recommendations.`;
+        if(meta && meta.signals){
+          const fmt=(value)=>Number.parseFloat(value||0).toFixed(2);
+          const parts=[];
+          const labels={user:'You', friends_play:"Friends' playtime", friends_sim:'Friends similarity'};
+          Object.entries(labels).forEach(([key,label])=>{
+            const info=meta.signals[key];
+            if(!info) return;
+            const inactive=!info.available;
+            const applied=fmt(info.applied_weight);
+            parts.push(`${label} ${applied}${inactive ? ' (inactive)' : ''}`);
+          });
+          if(parts.length) statusMsg += ` Weights → ${parts.join(' · ')}`;
+        }
+        setStatus(statusMsg, true);
 
       }catch(e){
         const endpointHint = (e && e.endpoint) || CONFIG.lastEndpoint || CONFIG.endpoints[0] || '';
