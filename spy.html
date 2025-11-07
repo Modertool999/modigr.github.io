@@ -61,11 +61,12 @@
       <h1 style="margin:0 0 6px 0; font-size:28px;">S&amp;P 500 Next-Day Forecaster</h1>
       <p style="margin:0;">
         Backtest a long-or-cash strategy from engineered price features.
-        <b>Start</b> and <b>End</b> must be within <b>2019-01-02</b> to <b>2025-10-01</b> (API window).
+        <b>Start</b> and <b>End</b> must be within <b id="windowStart">2019-01-02</b> to <b id="windowEnd">2025-10-01</b> (cached API window).
       </p>
       <p class="note-red">
-        <b>Note:</b> This demo uses the free <code>yfinance</code> data source. Requests are rate-limited and availability may fluctuate with user activity.
-        If it errors or times out, please try again shortly — this is outside my control.
+        <b>Note:</b> This demo reads from a cached SQLite snapshot (no live Yahoo Finance calls).
+        Requests outside the stored window or empty spans return a descriptive error immediately.
+        <span id="windowMetaStatus" style="display:block;margin-top:4px;color:#ffd8d8;">Checking window metadata…</span>
       </p>
     </section>
 
@@ -82,13 +83,13 @@
             <div style="font-size:14px;">Start (YYYY-MM-DD)</div>
             <!-- IMPORTANT: single backslashes in pattern, and prefilled default value -->
             <input id="startDate" type="text" pattern="^\d{4}-\d{2}-\d{2}$" value="2019-01-02" required />
-            <div style="font-size:12px;color:#a9d7c5;margin-top:6px;">Default: 2019-01-02</div>
+            <div style="font-size:12px;color:#a9d7c5;margin-top:6px;">Default: <span id="startDefault">2019-01-02</span></div>
           </label>
           <label>
             <div style="font-size:14px;">End (YYYY-MM-DD)</div>
             <!-- Prefilled default value -->
             <input id="endDate" type="text" pattern="^\d{4}-\d{2}-\d{2}$" value="2025-10-01" required />
-            <div style="font-size:12px;color:#a9d7c5;margin-top:6px;">Default: 2025-10-01</div>
+            <div style="font-size:12px;color:#a9d7c5;margin-top:6px;">Default: <span id="endDefault">2025-10-01</span></div>
           </label>
           <div style="display:flex; align-items:flex-end; gap:12px;">
             <!-- type=button so clicks always fire regardless of form validity UI -->
@@ -125,52 +126,144 @@
   </footer>
 
   <script>
+    const API_BASE='https://spy-forecast-modi-2-gka4h2cng6dhcvcf.westus-01.azurewebsites.net';
     const CONFIG = {
-      endpoints:{ spyForecast:'https://spy-forecast-modi-2-gka4h2cng6dhcvcf.westus-01.azurewebsites.net/api/spy-backtest' },
+      endpoints:{
+        spyForecast:`${API_BASE}/api/spy-backtest`,
+        spyWindow:`${API_BASE}/api/spy-window`
+      },
       requestTimeoutMs:20000,
-      minDate:'2019-01-02',
-      maxDate:'2025-10-01'
+      window:{ start:'2019-01-02', end:'2025-10-01' }
     };
     const $=(s)=>document.querySelector(s);
-    document.getElementById('y').textContent=new Date().getFullYear();
+    const els={
+      year:document.getElementById('y'),
+      alert:document.getElementById('alert'),
+      windowStart:document.getElementById('windowStart'),
+      windowEnd:document.getElementById('windowEnd'),
+      windowMeta:document.getElementById('windowMetaStatus'),
+      startDefault:document.getElementById('startDefault'),
+      endDefault:document.getElementById('endDefault'),
+      startInput:document.getElementById('startDate'),
+      endInput:document.getElementById('endDate'),
+      thresholdInput:document.getElementById('thr'),
+      btStatus:document.getElementById('btStatus'),
+      runBtn:document.getElementById('runBacktest'),
+      resetBtn:document.getElementById('resetBacktest'),
+      form:document.getElementById('spyForm')
+    };
+    const statsEls={
+      tr:document.getElementById('statTR'),
+      cagr:document.getElementById('statCAGR'),
+      sharpe:document.getElementById('statSharpe'),
+      mdd:document.getElementById('statMDD')
+    };
+    let chart;
+    if(els.year) els.year.textContent=new Date().getFullYear();
 
-    const setStatus=(m,ok=false)=>{ const el=$('#btStatus'); el.textContent=m||""; el.style.color= ok ? '#9ef5b2' : '#a9d7c5'; };
-    const showAlert=(m)=>{ const a=$('#alert'); a.textContent=m; a.classList.add('show'); };
-    const hideAlert=()=> $('#alert').classList.remove('show');
-    const fetchWithTimeout=(url,opt={},ms=15000)=>{ const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms); return fetch(url,{...opt,signal:c.signal}).finally(()=>clearTimeout(t)); };
+    const setStatus=(m,ok=false)=>{ if(!els.btStatus) return; els.btStatus.textContent=m||""; els.btStatus.style.color= ok ? '#9ef5b2' : '#a9d7c5'; };
+    const showAlert=(m='')=>{ if(!els.alert) return; els.alert.textContent=m; els.alert.classList.add('show'); };
+    const hideAlert=()=>{ if(!els.alert) return; els.alert.textContent=''; els.alert.classList.remove('show'); };
+    const clearStats=()=>{ Object.values(statsEls).forEach(el=>{ if(el) el.textContent='—'; }); };
+    const fetchWithTimeout=(url,opt={},ms=15000)=>{ const controller=new AbortController(); const timer=setTimeout(()=>controller.abort(),ms); return fetch(url,{...opt,signal:controller.signal}).finally(()=>clearTimeout(timer)); };
     const isISO=(s)=>/^\d{4}-\d{2}-\d{2}$/.test(s);
-    const withinWindow=(s)=>{ const d=new Date(s); return d>=new Date(CONFIG.minDate) && d<=new Date(CONFIG.maxDate); };
+    const withinWindow=(s)=>{
+      if(!s) return false;
+      const d=new Date(s);
+      if(Number.isNaN(d.valueOf())) return false;
+      return d>=new Date(CONFIG.window.start) && d<=new Date(CONFIG.window.end);
+    };
 
-    // Attach handlers once DOM is ready
-    document.addEventListener('DOMContentLoaded', () => {
-      // Live validation
-      ['thr','startDate','endDate'].forEach(id => document.getElementById(id).addEventListener('input', validateForm));
-      document.getElementById('runBacktest').addEventListener('click', runBacktest);
-      document.getElementById('spyForm').addEventListener('submit', (e)=>{ e.preventDefault(); runBacktest(); });
-      // Validate once with the prefilled values
-      validateForm();
-    });
+    function updateWindowUI(){
+      if(els.windowStart) els.windowStart.textContent=CONFIG.window.start;
+      if(els.windowEnd) els.windowEnd.textContent=CONFIG.window.end;
+      if(els.startDefault) els.startDefault.textContent=CONFIG.window.start;
+      if(els.endDefault) els.endDefault.textContent=CONFIG.window.end;
+      if(els.startInput && els.startInput.dataset.userSet!=='true'){ els.startInput.value=CONFIG.window.start; }
+      if(els.endInput && els.endInput.dataset.userSet!=='true'){ els.endInput.value=CONFIG.window.end; }
+    }
+
+    function extractErrorDetail(status, bodyText){
+      const fallback=`Request failed (HTTP ${status}).`;
+      if(!bodyText) return fallback;
+      const trimmed=bodyText.trim();
+      if(!trimmed) return fallback;
+      try{
+        const parsed=JSON.parse(trimmed);
+        if(typeof parsed.detail==='string') return parsed.detail;
+        if(Array.isArray(parsed.detail)){
+          return parsed.detail.map(entry=>{
+            if(typeof entry==='string') return entry;
+            if(entry && typeof entry.msg==='string') return entry.msg;
+            return '';
+          }).filter(Boolean).join(' ');
+        }
+      }catch(_err){}
+      return trimmed;
+    }
+
+    async function hydrateWindow(){
+      if(els.windowMeta) els.windowMeta.textContent='Checking window metadata…';
+      try{
+        const res=await fetchWithTimeout(CONFIG.endpoints.spyWindow,{},10000);
+        const payload=await res.text();
+        if(!res.ok) throw new Error(extractErrorDetail(res.status,payload));
+        const data=JSON.parse(payload);
+        if(!data.start || !data.end) throw new Error('Window metadata missing start/end fields.');
+        CONFIG.window.start=data.start;
+        CONFIG.window.end=data.end;
+        updateWindowUI();
+        if(els.windowMeta) els.windowMeta.textContent='Cached window loaded from the API.';
+        validateForm();
+      }catch(err){
+        console.warn('Window metadata fetch failed', err);
+        updateWindowUI();
+        if(els.windowMeta) els.windowMeta.textContent='Could not refresh cache metadata; using fallback window.';
+      }
+    }
+
+    function looksRateLimited(status, txt){
+      if(status===429 || status===503 || status===502) return true;
+      if(typeof txt==='string' && /rate limit|too many requests|temporar/i.test(txt)) return true;
+      return false;
+    }
 
     function validateForm(){
       hideAlert();
-      const thr=parseFloat($('#thr').value||'0.55');
-      const start=($('#startDate').value||'').trim();
-      const end=($('#endDate').value||'').trim();
+      const thr=parseFloat(els.thresholdInput?.value||'0.55');
+      const start=(els.startInput?.value||'').trim();
+      const end=(els.endInput?.value||'').trim();
       let ok=true, msg=[];
+      const windowMsg=`${CONFIG.window.start} to ${CONFIG.window.end}`;
 
       if(!(thr>=0 && thr<=1)){ ok=false; msg.push('Threshold must be 0–1.'); }
       if(!isISO(start) || !isISO(end)){ ok=false; msg.push('Start/End must be YYYY-MM-DD.'); }
       if(isISO(start) && isISO(end) && new Date(start) > new Date(end)){ ok=false; msg.push('Start must be on or before End.'); }
-      if(isISO(start) && !withinWindow(start)){ ok=false; msg.push('Start must be within '+CONFIG.minDate+' to '+CONFIG.maxDate+'.'); }
-      if(isISO(end) && !withinWindow(end)){ ok=false; msg.push('End must be within '+CONFIG.minDate+' to '+CONFIG.maxDate+'.'); }
+      if(isISO(start) && !withinWindow(start)){ ok=false; msg.push(`Start must be within ${windowMsg}.`); }
+      if(isISO(end) && !withinWindow(end)){ ok=false; msg.push(`End must be within ${windowMsg}.`); }
 
-      // We control the enable/disable state
-      document.getElementById('runBacktest').disabled = !ok;
-      if(!ok) showAlert(msg.join(' '));
+      if(els.runBtn) els.runBtn.disabled=!ok;
+      if(!ok && msg.length) showAlert(msg.join(' '));
       return ok;
     }
 
-    let chart;
+    function resetForm(){
+      if(!els.startInput || !els.endInput || !els.thresholdInput) return;
+      els.thresholdInput.value='0.55';
+      els.startInput.dataset.userSet='';
+      els.endInput.dataset.userSet='';
+      updateWindowUI();
+      clearStats();
+      hideAlert();
+      setStatus('');
+      if(chart){
+        chart.data.labels=[];
+        chart.data.datasets[0].data=[];
+        chart.update();
+      }
+      validateForm();
+    }
+
     function ensureChart(){
       if(chart) return chart;
       const canvas=document.getElementById('equityChart'); if(!canvas){ console.error('Canvas missing'); return null; }
@@ -185,18 +278,15 @@
       return chart;
     }
 
-    function looksRateLimited(status, txt){
-      if(status===429 || status===503 || status===502) return true;
-      if(typeof txt==='string' && /rate limit|too many requests|temporar/i.test(txt)) return true;
-      return false;
-    }
-
     async function runBacktest(){
       if(!validateForm()) return;
-      const btn=$('#runBacktest'); const ch=ensureChart();
-      const thr=parseFloat($('#thr').value||'0.55');
-      const start=($('#startDate').value||'').trim();
-      const end=($('#endDate').value||'').trim();
+      hideAlert();
+      const btn=els.runBtn;
+      const ch=ensureChart();
+      if(!btn || !ch) return;
+      const thr=parseFloat(els.thresholdInput.value||'0.55');
+      const start=els.startInput.value.trim();
+      const end=els.endInput.value.trim();
 
       try{
         btn.disabled=true; setStatus('Running backtest…');
@@ -209,32 +299,59 @@
         const txt=await res.text();
         if(!res.ok){
           if(looksRateLimited(res.status, txt)){
-            showAlert('Backtest temporarily unavailable due to upstream data rate limits (free yfinance). Please try again in a minute.');
+            showAlert('Backtest temporarily unavailable or busy. Please try again shortly.');
           }else{
-            showAlert('Backtest failed. Please check the date window and try again. (HTTP '+res.status+')');
+            showAlert(extractErrorDetail(res.status, txt));
           }
-          setStatus(''); return;
+          setStatus('');
+          return;
         }
-        const data=JSON.parse(txt);
+        let data;
+        try{
+          data=JSON.parse(txt);
+        }catch(parseErr){
+          throw new Error('Unexpected response from the API.');
+        }
         const eq=Array.isArray(data.equity)? data.equity:[];
-        if(eq.length===0){ setStatus('No equity data for that window.'); return; }
+        if(eq.length===0){
+          showAlert('No equity data for that window. Double-check your dates.');
+          setStatus('');
+          return;
+        }
 
         ch.data.labels=eq.map((_,i)=>i);
         ch.data.datasets[0].data=eq;
         ch.update();
 
         const pct=(x)=> (Number(x)||0).toFixed(2);
-        document.getElementById('statTR').textContent   = `${pct(data.total_ret)}%`;
-        document.getElementById('statCAGR').textContent = `${pct(data.cagr)}%`;
-        document.getElementById('statSharpe').textContent = data.sharpe!=null? pct(data.sharpe) : '—';
-        document.getElementById('statMDD').textContent    = data.max_drawdown!=null? `${pct(data.max_drawdown)}%` : '—';
+        if(statsEls.tr) statsEls.tr.textContent   = `${pct(data.total_ret)}%`;
+        if(statsEls.cagr) statsEls.cagr.textContent = `${pct(data.cagr)}%`;
+        if(statsEls.sharpe) statsEls.sharpe.textContent = data.sharpe!=null? pct(data.sharpe) : '—';
+        if(statsEls.mdd) statsEls.mdd.textContent    = data.max_drawdown!=null? `${pct(data.max_drawdown)}%` : '—';
         setStatus('Done.', true);
       }catch(e){
         if(e.name==='AbortError') showAlert('Request timed out. Try again.');
         else showAlert(e.message || 'Request failed.');
         setStatus('');
-      }finally{ btn.disabled=false; }
+      }finally{ if(btn) btn.disabled=false; }
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      ['thr','startDate','endDate'].forEach(id => {
+        const el=document.getElementById(id);
+        if(!el) return;
+        el.addEventListener('input', ()=>{
+          if(id==='startDate' || id==='endDate') el.dataset.userSet='true';
+          validateForm();
+        });
+      });
+      if(els.runBtn) els.runBtn.addEventListener('click', runBacktest);
+      if(els.form) els.form.addEventListener('submit', (e)=>{ e.preventDefault(); runBacktest(); });
+      if(els.resetBtn) els.resetBtn.addEventListener('click', resetForm);
+      updateWindowUI();
+      hydrateWindow();
+      validateForm();
+    });
   </script>
 </body>
 </html>
