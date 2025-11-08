@@ -70,7 +70,7 @@
         Dates before the holdout period (2022-01-03 onward) only expand the training data; the equity curve always reflects the true out-of-sample range returned by the API.
       </p>
       <div class="uptime-note">
-        Heads up: I let the Azure backend nap to save credits, so cold starts are expected. If the first couple of runs throw errors, just retry—after 2–3 attempts the service finishes waking up and works normally.
+        Note: the Azure backend sleeps most of the time so it doesn’t burn through credits. Early requests can fail while it cold-starts, just refresh/resubmit a couple of times (2–3 tries tops) and it will come online.
       </div>
     </section>
 
