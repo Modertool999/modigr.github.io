@@ -103,6 +103,9 @@
           </div>
         </div>
         <div id="btStatus" style="margin-top:8px; font-size:12px; color:#a9d7c5;" aria-live="polite"></div>
+        <div id="actualRange" style="margin-top:4px; font-size:12px; color:#8fe9b8; display:none;">
+          Actual backtest window:&nbsp;<span id="actualRangeStart">—</span> → <span id="actualRangeEnd">—</span>
+        </div>
       </form>
 
       <div style="margin-top:14px;">
@@ -132,7 +135,7 @@
 
   <script>
     const API_BASE='https://spy-forecast-modi-2-gka4h2cng6dhcvcf.westus-01.azurewebsites.net';
-    const DATE_KEYS=['dates','equity_dates','price_dates','labels'];
+    const DATE_KEYS=['equity_dates','baseline_dates','dates','price_dates','labels'];
     const CONFIG = {
       endpoints:{
         spyForecast:`${API_BASE}/api/spy-backtest`,
@@ -153,6 +156,9 @@
       endInput:document.getElementById('endDate'),
       thresholdInput:document.getElementById('thr'),
       btStatus:document.getElementById('btStatus'),
+      actualRange:document.getElementById('actualRange'),
+      actualRangeStart:document.getElementById('actualRangeStart'),
+      actualRangeEnd:document.getElementById('actualRangeEnd'),
       runBtn:document.getElementById('runBacktest'),
       resetBtn:document.getElementById('resetBacktest'),
       form:document.getElementById('spyForm')
@@ -184,6 +190,17 @@
       const d=new Date(s);
       if(Number.isNaN(d.valueOf())) return false;
       return d>=new Date(CONFIG.window.start) && d<=new Date(CONFIG.window.end);
+    };
+    const setActualWindow=(start,end)=>{
+      if(!els.actualRange) return;
+      const ok=isISO(start)&&isISO(end);
+      if(ok){
+        if(els.actualRangeStart) els.actualRangeStart.textContent=start;
+        if(els.actualRangeEnd) els.actualRangeEnd.textContent=end;
+        els.actualRange.style.display='block';
+      }else{
+        els.actualRange.style.display='none';
+      }
     };
 
     function updateWindowUI(){
@@ -298,6 +315,7 @@
       clearStats();
       hideAlert();
       setStatus('');
+      setActualWindow();
       if(chart){
         chart.data.labels=[];
         chart.data.datasets.forEach(ds=>{ ds.data=[]; });
@@ -381,6 +399,7 @@
         }catch(parseErr){
           throw new Error('Unexpected response from the API.');
         }
+        setActualWindow(data.start, data.end);
         const eq=Array.isArray(data.equity)? data.equity:[];
         const baseline=Array.isArray(data.baseline_equity)? data.baseline_equity:[];
         const maxLen=Math.max(eq.length, baseline.length);
@@ -391,7 +410,7 @@
         }
 
         const rawDates=DATE_KEYS.map(key=>Array.isArray(data[key])? data[key]:null).find(Boolean);
-        const labels=buildDateLabels(rawDates, start, maxLen);
+        const labels=buildDateLabels(rawDates, data.start || start, maxLen);
         ch.data.labels=labels;
         if(ch.data.datasets[0]) ch.data.datasets[0].data=eq;
         if(ch.data.datasets[1]) ch.data.datasets[1].data=baseline;
@@ -402,7 +421,8 @@
         if(statsEls.cagr) statsEls.cagr.textContent = `${pct(data.cagr)}%`;
         if(statsEls.sharpe) statsEls.sharpe.textContent = data.sharpe!=null? pct(data.sharpe) : '—';
         if(statsEls.mdd) statsEls.mdd.textContent    = data.max_drawdown!=null? `${pct(data.max_drawdown)}%` : '—';
-        setStatus('Done.', true);
+        const statusRange=(data.start && data.end) ? `${data.start} → ${data.end}` : '';
+        setStatus(statusRange ? `Done · ${statusRange}` : 'Done.', true);
       }catch(e){
         if(e.name==='AbortError') showAlert('Request timed out. Try again.');
         else showAlert(e.message || 'Request failed.');
