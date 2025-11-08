@@ -40,6 +40,7 @@
     .hint{ display:none; color:#f6e0a5; font-size:12px; margin-top:6px; }
     .hint.show{ display:block; }
     ol{ margin-top:10px; padding-left:22px; }
+    .uptime-note{ margin-top:12px; padding:12px; border-radius:10px; border:1px dashed #1d5c45; background:#0f1f18; font-size:13px; color:#cfeee2; line-height:1.45; }
   </style>
 </head>
 <body>
@@ -63,6 +64,9 @@
           Steam is a popular PC gaming platform by Valve; this app uses Steam data to personalize picks.
         </span>
       </p>
+      <div class="uptime-note">
+        Note: the Azure backend sleeps most of the time so it doesn’t burn through credits. Early requests can fail while it cold-starts—refresh or resubmit a couple of times (2–3 tries tops) and it will come online.
+      </div>
     </section>
 
     <section class="card" style="margin-top:18px;">

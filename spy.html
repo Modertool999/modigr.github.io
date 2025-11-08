@@ -45,6 +45,7 @@
 
     .alert{ display:none; border:1px solid #742a2a; background:#2a1616; color:#ffd8d8; padding:10px 12px; border-radius:10px; margin-bottom:10px; }
     .alert.show{ display:block; }
+    .uptime-note{ margin-top:12px; padding:12px; border-radius:10px; border:1px dashed #1d5c45; background:#0f1f18; font-size:13px; color:#cfeee2; line-height:1.45; }
   </style>
 </head>
 <body>
@@ -68,6 +69,9 @@
         <b>Start</b> and <b>End</b> clamp within <b id="windowStart">2022-01-03</b> to <b id="windowEnd">2025-11-07</b> (out-of-sample holdout window).
         Dates before the holdout period (2022-01-03 onward) only expand the training data; the equity curve always reflects the true out-of-sample range returned by the API.
       </p>
+      <div class="uptime-note">
+        Heads up: I let the Azure backend nap to save credits, so cold starts are expected. If the first couple of runs throw errors, just retry—after 2–3 attempts the service finishes waking up and works normally.
+      </div>
     </section>
 
     <section class="card" style="margin-top:18px;">
