@@ -65,9 +65,7 @@
     <section class="card">
       <h1 style="margin:0 0 6px 0; font-size:28px;">S&amp;P 500 Next-Day Forecaster</h1>
       <p style="margin:0;">
-        Backtest a long-or-cash strategy from engineered price features.
-        <b>Start</b> and <b>End</b> clamp within <b id="windowStart">2022-01-03</b> to <b id="windowEnd">2025-11-07</b> (out-of-sample holdout window).
-        Dates before the holdout period (2022-01-03 onward) only expand the training data; the equity curve always reflects the true out-of-sample range returned by the API.
+        Backtest a long-or-cash strategy from engineered price features and compare against a simple buy-and-hold strategy.
       </p>
       <div class="uptime-note">
         Note: the Azure backend sleeps most of the time so it doesn’t burn through credits. Early requests can fail while it cold-starts, just refresh/resubmit a couple of times (2–3 tries tops) and it will come online.
