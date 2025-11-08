@@ -258,7 +258,7 @@
       setStatus('');
       if(chart){
         chart.data.labels=[];
-        chart.data.datasets[0].data=[];
+        chart.data.datasets.forEach(ds=>{ ds.data=[]; });
         chart.update();
       }
       validateForm();
@@ -268,12 +268,20 @@
       if(chart) return chart;
       const canvas=document.getElementById('equityChart'); if(!canvas){ console.error('Canvas missing'); return null; }
       const ctx=canvas.getContext('2d');
-      const grad=ctx.createLinearGradient(0,0,0,200); grad.addColorStop(0,'rgba(27,183,116,0.28)'); grad.addColorStop(1,'rgba(27,183,116,0.00)');
+      const stratGrad=ctx.createLinearGradient(0,0,0,200); stratGrad.addColorStop(0,'rgba(27,183,116,0.28)'); stratGrad.addColorStop(1,'rgba(27,183,116,0.00)');
+      const baselineGrad=ctx.createLinearGradient(0,0,0,200); baselineGrad.addColorStop(0,'rgba(242,201,76,0.20)'); baselineGrad.addColorStop(1,'rgba(242,201,76,0.00)');
       chart=new Chart(ctx,{ type:'line',
-        data:{ labels:[], datasets:[{ label:'Equity (\u00D7)', data:[], borderColor:'#1bb774', backgroundColor:grad, fill:true, borderWidth:2, pointRadius:0, tension:0.18 }] },
+        data:{ labels:[], datasets:[
+          { label:'Strategy', data:[], borderColor:'#1bb774', backgroundColor=stratGrad, fill:true, borderWidth:2, pointRadius:0, tension:0.18 },
+          { label:'Buy & Hold', data:[], borderColor:'#f2c94c', backgroundColor:baselineGrad, fill:false, borderDash:[6,4], borderWidth:2, pointRadius:0, tension:0.18 }
+        ] },
         options:{ responsive:true, animation:{duration:220}, interaction:{mode:'index', intersect:false},
           scales:{ y:{ beginAtZero:false, grid:{ color:'rgba(255,255,255,.08)' }}, x:{ display:false }},
-          plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label:(c)=>'\u00D7 '+(c.parsed?.y??0).toFixed(3) } } }
+          plugins:{ legend:{ display:true, labels:{ color:'#c9f3e0' } }, tooltip:{ callbacks:{ label:(c)=>{
+            const label=c.dataset?.label||'Value';
+            const val=typeof c.parsed?.y==='number'? c.parsed.y:0;
+            return `${label}: \u00D7 ${val.toFixed(3)}`;
+          } } }
       }});
       return chart;
     }
@@ -313,14 +321,18 @@
           throw new Error('Unexpected response from the API.');
         }
         const eq=Array.isArray(data.equity)? data.equity:[];
-        if(eq.length===0){
+        const baseline=Array.isArray(data.baseline_equity)? data.baseline_equity:[];
+        const maxLen=Math.max(eq.length, baseline.length);
+        if(maxLen===0){
           showAlert('No equity data for that window. Double-check your dates.');
           setStatus('');
           return;
         }
 
-        ch.data.labels=eq.map((_,i)=>i);
-        ch.data.datasets[0].data=eq;
+        const labels=Array.from({length:maxLen},(_,i)=>i);
+        ch.data.labels=labels;
+        if(ch.data.datasets[0]) ch.data.datasets[0].data=eq;
+        if(ch.data.datasets[1]) ch.data.datasets[1].data=baseline;
         ch.update();
 
         const pct=(x)=> (Number(x)||0).toFixed(2);
