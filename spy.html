@@ -127,6 +127,7 @@
 
   <script>
     const API_BASE='https://spy-forecast-modi-2-gka4h2cng6dhcvcf.westus-01.azurewebsites.net';
+    const DATE_KEYS=['dates','equity_dates','price_dates','labels'];
     const CONFIG = {
       endpoints:{
         spyForecast:`${API_BASE}/api/spy-backtest`,
@@ -152,12 +153,14 @@
       resetBtn:document.getElementById('resetBacktest'),
       form:document.getElementById('spyForm')
     };
+    if(els.windowMeta) els.windowMeta.textContent='';
     const statsEls={
       tr:document.getElementById('statTR'),
       cagr:document.getElementById('statCAGR'),
       sharpe:document.getElementById('statSharpe'),
       mdd:document.getElementById('statMDD')
     };
+    let windowMetaTimer=null;
     let chart;
     if(els.year) els.year.textContent=new Date().getFullYear();
 
@@ -183,6 +186,46 @@
       if(els.endInput && els.endInput.dataset.userSet!=='true'){ els.endInput.value=CONFIG.window.end; }
     }
 
+    const normalizeDateString=(str)=>{
+      if(typeof str!=='string') return null;
+      const trimmed=str.trim();
+      if(!trimmed) return null;
+      if(isISO(trimmed)) return trimmed;
+      const d=new Date(trimmed);
+      return Number.isNaN(d.valueOf()) ? null : d.toISOString().slice(0,10);
+    };
+
+    function buildDateLabels(rawDates, start, len){
+      if(Array.isArray(rawDates)){
+        const cleaned=rawDates.map(normalizeDateString).filter(Boolean);
+        if(cleaned.length>=len) return cleaned.slice(0,len);
+      }
+      if(isISO(start)){
+        const base=new Date(start);
+        if(!Number.isNaN(base.valueOf())){
+          return Array.from({length:len},(_,idx)=>{
+            const d=new Date(base);
+            d.setDate(base.getDate()+idx);
+            return d.toISOString().slice(0,10);
+          });
+        }
+      }
+      return Array.from({length:len},(_,idx)=>`Day ${idx+1}`);
+    }
+
+    const startWindowMetaLoading=()=>{
+      if(!els.windowMeta) return;
+      clearTimeout(windowMetaTimer);
+      windowMetaTimer=setTimeout(()=>{
+        if(els.windowMeta) els.windowMeta.textContent='Checking window metadata…';
+      },250);
+    };
+    const finishWindowMetaLoading=(message)=>{
+      if(!els.windowMeta) return;
+      clearTimeout(windowMetaTimer);
+      els.windowMeta.textContent=message;
+    };
+
     function extractErrorDetail(status, bodyText){
       const fallback=`Request failed (HTTP ${status}).`;
       if(!bodyText) return fallback;
@@ -203,7 +246,7 @@
     }
 
     async function hydrateWindow(){
-      if(els.windowMeta) els.windowMeta.textContent='Checking window metadata…';
+      startWindowMetaLoading();
       try{
         const res=await fetchWithTimeout(CONFIG.endpoints.spyWindow,{},10000);
         const payload=await res.text();
@@ -213,12 +256,12 @@
         CONFIG.window.start=data.start;
         CONFIG.window.end=data.end;
         updateWindowUI();
-        if(els.windowMeta) els.windowMeta.textContent='Cached window loaded from the API.';
+        finishWindowMetaLoading('Cached window loaded from the API.');
         validateForm();
       }catch(err){
         console.warn('Window metadata fetch failed', err);
         updateWindowUI();
-        if(els.windowMeta) els.windowMeta.textContent='Could not refresh cache metadata; using fallback window.';
+        finishWindowMetaLoading('Could not refresh cache metadata; using fallback window.');
       }
     }
 
@@ -276,7 +319,26 @@
           { label:'Buy & Hold', data:[], borderColor:'#f2c94c', backgroundColor:baselineGrad, fill:false, borderDash:[6,4], borderWidth:2, pointRadius:0, tension:0.18 }
         ] },
         options:{ responsive:true, animation:{duration:220}, interaction:{mode:'index', intersect:false},
-          scales:{ y:{ beginAtZero:false, grid:{ color:'rgba(255,255,255,.08)' }}, x:{ display:false }},
+          scales:{
+            y:{
+              beginAtZero:false,
+              grid:{ color:'rgba(255,255,255,.08)' },
+              ticks:{ color:'#c9f3e0' },
+              title:{ display:true, text:'Equity multiple (×)', color:'#a9d7c5', font:{ size:12 } }
+            },
+            x:{
+              display:true,
+              grid:{ color:'rgba(255,255,255,.05)' },
+              ticks:{
+                color:'#c9f3e0',
+                autoSkip:true,
+                maxTicksLimit:6,
+                maxRotation:0,
+                callback(value){ return typeof value==='string'? value : this.getLabelForValue(value); }
+              },
+              title:{ display:true, text:'Date', color:'#a9d7c5', font:{ size:12 } }
+            }
+          },
           plugins:{ legend:{ display:true, labels:{ color:'#c9f3e0' } }, tooltip:{ callbacks:{ label:(c)=>{
             const label=(c.dataset && c.dataset.label) ? c.dataset.label : 'Value';
             const val=(c.parsed && typeof c.parsed.y==='number') ? c.parsed.y : 0;
@@ -329,7 +391,8 @@
           return;
         }
 
-        const labels=Array.from({length:maxLen},(_,i)=>i);
+        const rawDates=DATE_KEYS.map(key=>Array.isArray(data[key])? data[key]:null).find(Boolean);
+        const labels=buildDateLabels(rawDates, start, maxLen);
         ch.data.labels=labels;
         if(ch.data.datasets[0]) ch.data.datasets[0].data=eq;
         if(ch.data.datasets[1]) ch.data.datasets[1].data=baseline;
@@ -348,7 +411,19 @@
       }finally{ if(btn) btn.disabled=false; }
     }
 
+    function preservePrefilledInputs(){
+      if(els.startInput){
+        const val=(els.startInput.value||'').trim();
+        if(val && val!==CONFIG.window.start) els.startInput.dataset.userSet='true';
+      }
+      if(els.endInput){
+        const val=(els.endInput.value||'').trim();
+        if(val && val!==CONFIG.window.end) els.endInput.dataset.userSet='true';
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
+      preservePrefilledInputs();
       ['thr','startDate','endDate'].forEach(id => {
         const el=document.getElementById(id);
         if(!el) return;
