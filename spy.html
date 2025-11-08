@@ -230,9 +230,9 @@
 
     function validateForm(){
       hideAlert();
-      const thr=parseFloat(els.thresholdInput?.value||'0.55');
-      const start=(els.startInput?.value||'').trim();
-      const end=(els.endInput?.value||'').trim();
+      const thr=parseFloat((els.thresholdInput && els.thresholdInput.value) || '0.55');
+      const start=((els.startInput && els.startInput.value) || '').trim();
+      const end=((els.endInput && els.endInput.value) || '').trim();
       let ok=true, msg=[];
       const windowMsg=`${CONFIG.window.start} to ${CONFIG.window.end}`;
 
@@ -272,16 +272,16 @@
       const baselineGrad=ctx.createLinearGradient(0,0,0,200); baselineGrad.addColorStop(0,'rgba(242,201,76,0.20)'); baselineGrad.addColorStop(1,'rgba(242,201,76,0.00)');
       chart=new Chart(ctx,{ type:'line',
         data:{ labels:[], datasets:[
-          { label:'Strategy', data:[], borderColor:'#1bb774', backgroundColor=stratGrad, fill:true, borderWidth:2, pointRadius:0, tension:0.18 },
+          { label:'Strategy', data:[], borderColor:'#1bb774', backgroundColor:stratGrad, fill:true, borderWidth:2, pointRadius:0, tension:0.18 },
           { label:'Buy & Hold', data:[], borderColor:'#f2c94c', backgroundColor:baselineGrad, fill:false, borderDash:[6,4], borderWidth:2, pointRadius:0, tension:0.18 }
         ] },
         options:{ responsive:true, animation:{duration:220}, interaction:{mode:'index', intersect:false},
           scales:{ y:{ beginAtZero:false, grid:{ color:'rgba(255,255,255,.08)' }}, x:{ display:false }},
           plugins:{ legend:{ display:true, labels:{ color:'#c9f3e0' } }, tooltip:{ callbacks:{ label:(c)=>{
-            const label=c.dataset?.label||'Value';
-            const val=typeof c.parsed?.y==='number'? c.parsed.y:0;
+            const label=(c.dataset && c.dataset.label) ? c.dataset.label : 'Value';
+            const val=(c.parsed && typeof c.parsed.y==='number') ? c.parsed.y : 0;
             return `${label}: \u00D7 ${val.toFixed(3)}`;
-          } } }
+          } } } }
       }});
       return chart;
     }
