@@ -38,7 +38,6 @@
     .grid{ display:grid; gap:16px; }
     @media(min-width:900px){ .grid-4{ grid-template-columns:1fr 1fr 1fr auto; } .grid-4>*{ min-width:0; } }
 
-    .note-red{ margin:8px 0 0 0; font-size:13px; color:#ffb3b3; border-left:3px solid #ff6b6b; padding-left:10px; }
     .alert{ display:none; border:1px solid #742a2a; background:#2a1616; color:#ffd8d8; padding:10px 12px; border-radius:10px; margin-bottom:10px; }
     .alert.show{ display:block; }
   </style>
@@ -62,11 +61,6 @@
       <p style="margin:0;">
         Backtest a long-or-cash strategy from engineered price features.
         <b>Start</b> and <b>End</b> must be within <b id="windowStart">2019-01-02</b> to <b id="windowEnd">2025-10-01</b> (cached API window).
-      </p>
-      <p class="note-red">
-        <b>Note:</b> This demo reads from a cached SQLite snapshot (no live Yahoo Finance calls).
-        Requests outside the stored window or empty spans return a descriptive error immediately.
-        <span id="windowMetaStatus" style="display:block;margin-top:4px;color:#ffd8d8;">Checking window metadata…</span>
       </p>
     </section>
 
@@ -142,7 +136,6 @@
       alert:document.getElementById('alert'),
       windowStart:document.getElementById('windowStart'),
       windowEnd:document.getElementById('windowEnd'),
-      windowMeta:document.getElementById('windowMetaStatus'),
       startDefault:document.getElementById('startDefault'),
       endDefault:document.getElementById('endDefault'),
       startInput:document.getElementById('startDate'),
@@ -153,14 +146,12 @@
       resetBtn:document.getElementById('resetBacktest'),
       form:document.getElementById('spyForm')
     };
-    if(els.windowMeta) els.windowMeta.textContent='';
     const statsEls={
       tr:document.getElementById('statTR'),
       cagr:document.getElementById('statCAGR'),
       sharpe:document.getElementById('statSharpe'),
       mdd:document.getElementById('statMDD')
     };
-    let windowMetaTimer=null;
     let chart;
     if(els.year) els.year.textContent=new Date().getFullYear();
 
@@ -213,19 +204,6 @@
       return Array.from({length:len},(_,idx)=>`Day ${idx+1}`);
     }
 
-    const startWindowMetaLoading=()=>{
-      if(!els.windowMeta) return;
-      clearTimeout(windowMetaTimer);
-      windowMetaTimer=setTimeout(()=>{
-        if(els.windowMeta) els.windowMeta.textContent='Checking window metadata…';
-      },250);
-    };
-    const finishWindowMetaLoading=(message)=>{
-      if(!els.windowMeta) return;
-      clearTimeout(windowMetaTimer);
-      els.windowMeta.textContent=message;
-    };
-
     function extractErrorDetail(status, bodyText){
       const fallback=`Request failed (HTTP ${status}).`;
       if(!bodyText) return fallback;
@@ -246,7 +224,6 @@
     }
 
     async function hydrateWindow(){
-      startWindowMetaLoading();
       try{
         const res=await fetchWithTimeout(CONFIG.endpoints.spyWindow,{},10000);
         const payload=await res.text();
@@ -256,12 +233,10 @@
         CONFIG.window.start=data.start;
         CONFIG.window.end=data.end;
         updateWindowUI();
-        finishWindowMetaLoading('Cached window loaded from the API.');
         validateForm();
       }catch(err){
         console.warn('Window metadata fetch failed', err);
         updateWindowUI();
-        finishWindowMetaLoading('Could not refresh cache metadata; using fallback window.');
       }
     }
 
