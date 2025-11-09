@@ -54,9 +54,9 @@
     ul{ margin:8px 0 0 0; padding-left:20px; }
     footer{ color:#a9d7c5; text-align:center; font-size:12px; padding:36px 0 60px; border-top:2px solid #0a2e23; margin-top:28px; }
 
-    .imgblock{ position:relative; border:1px solid var(--line); border-radius:14px; overflow:hidden; background:#09130f; margin-top:12px; aspect-ratio:4/3; }
+    .imgblock{ border:1px solid var(--line); border-radius:14px; overflow:hidden; background:#09130f; margin-top:12px; height:clamp(300px,45vw,430px); }
     .imgblock img{ display:block; width:100%; height:100%; margin:0; object-fit:cover; }
-    .caption{ position:absolute; left:0; right:0; bottom:0; padding:8px 10px; font-size:12px; color:#e4fff0; background:linear-gradient(180deg,rgba(9,19,15,0),rgba(9,19,15,.85)); text-align:left; }
+    .caption{ font-size:12px; color:#a9d7c5; text-align:center; margin-top:6px; }
 
     /* ===== Static neon text for "Modi" — no hover, no JS ===== */
     .name-neon{
@@ -152,11 +152,11 @@
           </div>
         </div>
 
-        <figure class="imgblock">
+        <div class="imgblock">
           <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/DarrelleRevis2011.jpg"
                alt="Darrelle Revis backpedaling for the New York Jets in 2011" />
-          <figcaption class="caption">Darrelle Revis, MetLife Stadium — Oct 23, 2011 (CC BY 2.0 · photo by Marianne O'Leary)</figcaption>
-        </figure>
+        </div>
+        <div class="caption">Darrelle Revis, MetLife Stadium — Oct 23, 2011 (CC BY 2.0 · photo by Marianne O'Leary)</div>
       </div>
     </section>
 
