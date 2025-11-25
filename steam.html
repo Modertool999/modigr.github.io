@@ -6,7 +6,6 @@
   <title>Video Game Recommender · Modi</title>
   <meta name="color-scheme" content="dark" />
   <link rel="icon" type="image/png" href="jets-favicon.png" />
-  <!-- IBM Plex Sans: humanist sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -227,7 +226,7 @@
               const friendly= attempt.status===401 || /unauthorized/i.test(masked)
                 ? 'Steam rejected the request, most likely because that profile does not allow friend-list access.'
                 : (masked || 'request failed');
-              lastErr=new Error(`HTTP ${attempt.status} — ${friendly}`);
+              lastErr=new Error(`HTTP ${attempt.status} - ${friendly}`);
               lastErr.endpoint=endpoint;
               continue;
             }
