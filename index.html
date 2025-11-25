@@ -15,35 +15,30 @@
       color-scheme: dark;
       --ink:#e8f3ed;
       --muted:#b2cfc2;
-      --panel:#0c1110;
-      --panel-alt:#0f1614;
-      --line:#1c2924;
-      --accent:#9de2c2;
-      --accent-2:#f7d18c;
+      --panel:#0d1112;
+      --panel-alt:#111718;
+      --line:#182423;
+      --accent:#b7e6cb;
+      --accent-2:#f3d9a4;
       --ui-font:"DM Sans","Space Grotesk","Helvetica Neue",Arial,sans-serif;
       --display:"Space Grotesk","DM Sans","Helvetica Neue",Arial,sans-serif;
     }
     *{ box-sizing:border-box; }
     body, button, input, select, textarea{ font-family:var(--ui-font) !important; }
-    body{
-      margin:0;
-      background:radial-gradient(circle at 14% 20%, rgba(157,226,194,.04), transparent 32%), var(--panel);
-      color:var(--ink);
-      line-height:1.6;
-    }
+    body{ margin:0; background:var(--panel); color:var(--ink); line-height:1.6; }
     a{ color:var(--accent); text-decoration:none; } a:hover{text-decoration:underline;}
     .wrap{ max-width:1120px; margin:0 auto; padding:0 18px 32px; }
 
-    header{ position:sticky; top:0; z-index:10; background:rgba(12,18,16,.9); border-bottom:1px solid var(--line); }
+    header{ position:sticky; top:0; z-index:10; background:rgba(12,18,16,.94); border-bottom:1px solid var(--line); }
     .row{ display:flex; align-items:center; justify-content:space-between; padding:12px 0; }
     nav a{ margin-left:18px; color:var(--muted); font-weight:500; letter-spacing:.01em; } nav a.active{ color:#fff; text-underline-offset:4px; text-decoration:underline; }
 
-    .brand{ font-family:var(--display); font-weight:700; letter-spacing:.4px; position:relative; display:inline-block; color:#fff; }
-    .brand::after{ content:""; position:absolute; left:0; bottom:-4px; height:2px; width:100%; background:linear-gradient(90deg,var(--accent),var(--accent-2)); transform:scaleX(.36); transform-origin:left; transition:transform .35s ease; }
+    .brand{ font-family:var(--display); font-weight:700; letter-spacing:.2px; position:relative; display:inline-block; color:#fff; }
+    .brand::after{ content:""; position:absolute; left:0; bottom:-4px; height:2px; width:72%; background:var(--accent); transform-origin:left; transform:scaleX(.7); transition:transform .3s ease; }
     .brand:hover::after{ transform:scaleX(1); } .brand:hover{ transform:translateY(-1px); transition:transform .25s ease; }
 
     .card{
-      background:linear-gradient(160deg,rgba(17,26,23,.95),rgba(12,18,16,.94));
+      background:linear-gradient(160deg,rgba(17,25,24,.96),rgba(12,17,16,.94));
       border:1px solid var(--line);
       border-radius:16px;
       padding:20px;
@@ -96,8 +91,8 @@
     }
     .cube-grid{ display:grid; gap:18px; align-items:center; }
     @media(min-width:980px){ .cube-grid{ grid-template-columns:1.05fr 1fr; } }
-    .cube-view{ background:#0a120f; border:1px solid var(--line); border-radius:14px; min-height:320px; position:relative; box-shadow:inset 0 1px 0 rgba(255,255,255,.02); aspect-ratio:1; }
-    #cube-canvas{ position:absolute; inset:0; width:100%; height:100%; }
+    .cube-view{ background:#0a120f; border:1px solid var(--line); border-radius:14px; min-height:360px; position:relative; box-shadow:inset 0 1px 0 rgba(255,255,255,.02); aspect-ratio:1; }
+    #cube-canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
     .cube-controls{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
     .cube-controls button{ background:#13231d; border:1px solid #1f352c; color:var(--ink); padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:600; letter-spacing:.02em; transition:background .16s ease, transform .16s ease, border-color .16s ease; }
     .cube-controls button:hover{ background:#183229; border-color:#29533f; transform:translateY(-1px); }
@@ -271,11 +266,14 @@
 
       const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      const cubeView = canvasHost.closest('.cube-view') || canvasHost;
       const attachRenderer = ()=>{
-        const parent = canvasHost.parentElement || canvasHost;
-        const w = parent.clientWidth || 400;
-        const h = parent.clientHeight || parent.clientWidth || 400;
-        renderer.setSize(w, h);
+        const rect = cubeView.getBoundingClientRect();
+        const w = rect.width || 420;
+        const h = rect.height || rect.width || 420;
+        renderer.setSize(w, h, false);
+        renderer.domElement.style.width = '100%';
+        renderer.domElement.style.height = '100%';
       };
       attachRenderer();
       canvasHost.appendChild(renderer.domElement);
@@ -465,10 +463,10 @@
       });
 
       function onResize(){
-        const parent = canvasHost.parentElement || canvasHost;
-        const w = parent.clientWidth || 400;
-        const h = parent.clientHeight || parent.clientWidth || 400;
-        renderer.setSize(w, h);
+        const rect = cubeView.getBoundingClientRect();
+        const w = rect.width || 420;
+        const h = rect.height || rect.width || 420;
+        renderer.setSize(w, h, false);
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
       }
