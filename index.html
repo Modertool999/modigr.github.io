@@ -252,13 +252,13 @@
     </section>
   </main>
 
-  <script type="module">
-    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js" defer></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const canvasHost = document.getElementById('cube-canvas');
+      if(!canvasHost || !window.THREE || !THREE.OrbitControls){ return; }
 
-    const canvasHost = document.getElementById('cube-canvas');
-    if(canvasHost){
-      // --- Scene setup ---
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
       camera.position.set(4.2, 4.6, 5.2);
@@ -278,17 +278,16 @@
       attachRenderer();
       canvasHost.appendChild(renderer.domElement);
 
-      const controls = new OrbitControls(camera, renderer.domElement);
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.08;
       controls.target.set(0,0,0);
 
-      // Lights for soft, even shading.
-      scene.add(new THREE.AmbientLight(0xffffff, 0.4));
-      const keyLight = new THREE.DirectionalLight(0xffffff, 0.9);
+      scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+      const keyLight = new THREE.DirectionalLight(0xffffff, 1);
       keyLight.position.set(5, 8, 6);
       scene.add(keyLight);
-      const rimLight = new THREE.DirectionalLight(0x8de1c0, 0.35);
+      const rimLight = new THREE.DirectionalLight(0x9de2c2, 0.45);
       rimLight.position.set(-4, -3, -5);
       scene.add(rimLight);
 
@@ -296,8 +295,8 @@
       scene.add(cubeGroup);
 
       const cubies = [];
-      const baseMaterial = new THREE.MeshPhysicalMaterial({ color:0x0d1512, roughness:0.55, metalness:0.18, clearcoat:0.12, clearcoatRoughness:0.35 });
-      const sticker = (hex)=> new THREE.MeshPhysicalMaterial({ color:hex, roughness:0.35, metalness:0.08, clearcoat:0.4, clearcoatRoughness:0.16 });
+      const baseMaterial = new THREE.MeshStandardMaterial({ color:0x0f1715, roughness:0.4, metalness:0.2 });
+      const sticker = (hex)=> new THREE.MeshStandardMaterial({ color:hex, roughness:0.2, metalness:0.05 });
       const colors = { R:0xd64234, L:0xf07918, U:0xf6f4ec, D:0xf5c53c, F:0x52c98d, B:0x2f79d6 };
       const spacing = 1.03;
       let currentPivot = null;
@@ -310,12 +309,12 @@
             for(let z=-1;z<=1;z++){
               const geo = new THREE.BoxGeometry(0.96,0.96,0.96);
               const materials = [
-                x===1 ? sticker(colors.R) : baseMaterial, // right
-                x===-1? sticker(colors.L) : baseMaterial, // left
-                y===1 ? sticker(colors.U) : baseMaterial, // top
-                y===-1? sticker(colors.D) : baseMaterial, // bottom
-                z===1 ? sticker(colors.F) : baseMaterial, // front
-                z===-1? sticker(colors.B) : baseMaterial, // back
+                x===1 ? sticker(colors.R) : baseMaterial,
+                x===-1? sticker(colors.L) : baseMaterial,
+                y===1 ? sticker(colors.U) : baseMaterial,
+                y===-1? sticker(colors.D) : baseMaterial,
+                z===1 ? sticker(colors.F) : baseMaterial,
+                z===-1? sticker(colors.B) : baseMaterial,
               ];
               const mesh = new THREE.Mesh(geo, materials);
               mesh.position.set(x*spacing, y*spacing, z*spacing);
@@ -335,7 +334,6 @@
         }
       }
 
-      // --- Move handling ---
       const faceInfo = {
         F:{ axis:'z', index:1, base:-1 },
         B:{ axis:'z', index:-1, base:1 },
@@ -444,7 +442,6 @@
         }
       }
 
-      // --- Controls wiring ---
       buildCube();
 
       document.querySelectorAll('.cube-controls button[data-move]').forEach(btn=>{
@@ -478,7 +475,7 @@
         renderer.render(scene, camera);
         requestAnimationFrame(render);
       })();
-    }
+    });
   </script>
 </body>
 </html>
