@@ -30,16 +30,16 @@
     a{ color:#8fe9b8; text-decoration:none; } a:hover{text-decoration:underline;}
     .wrap{ max-width:1040px; margin:0 auto; padding:0 16px; }
 
-    header{ position:sticky; top:0; z-index:10; background:linear-gradient(180deg,rgba(18,87,64,.95),rgba(14,71,54,.92)); border-bottom:2px solid #0a2e23; box-shadow:0 2px 0 #062119; }
+    header{ position:sticky; top:0; z-index:10; background:rgba(14,71,54,.95); border-bottom:2px solid #0a2e23; box-shadow:0 2px 0 #062119; }
     .row{ display:flex; align-items:center; justify-content:space-between; padding:10px 0; }
     nav a{ margin-left:16px; color:#c9f3e0; } nav a.active{ color:#fff; text-shadow:0 1px 0 #083326; }
 
     .brand{ font-weight:800; letter-spacing:.3px; position:relative; display:inline-block; color:#fff; text-shadow:0 1px 0 #083326; }
-    .brand::after{ content:""; position:absolute; left:0; bottom:-3px; height:3px; width:100%; background:linear-gradient(90deg,#87f6bf,#e4ffe4,#87f6bf); transform:scaleX(0); transform-origin:left; transition:transform .25s ease; }
+    .brand::after{ content:""; position:absolute; left:0; bottom:-3px; height:3px; width:100%; background:#8fe9b8; transform:scaleX(0); transform-origin:left; transition:transform .25s ease; }
     .brand:hover::after{ transform:scaleX(1); } .brand:hover{ transform:translateY(-1px) rotate(-.2deg); transition:transform .2s ease; }
 
-    .card{ background:linear-gradient(180deg,#0f201a,#0b1713); border:1px solid var(--line); border-radius:14px; padding:18px; box-shadow:inset 0 1px 0 rgba(255,255,255,.03), 0 2px 0 #07140f; }
-    .btn{ display:inline-block; padding:10px 14px; background:linear-gradient(180deg,#1bb774,#0e7c51); color:#fff; border-radius:10px; border:1px solid #0a5a3a; box-shadow:inset 0 1px 0 #54e0a4, 0 2px 0 #073e2a; }
+    .card{ background:#0f201a; border:1px solid var(--line); border-radius:14px; padding:18px; box-shadow:inset 0 1px 0 rgba(255,255,255,.03), 0 2px 0 #07140f; }
+    .btn{ display:inline-block; padding:10px 14px; background:#1bb774; color:#fff; border-radius:10px; border:1px solid #0a5a3a; box-shadow:inset 0 1px 0 #54e0a4, 0 2px 0 #073e2a; }
     .btn:hover{ filter:brightness(1.08); }
     .btn-outline{ display:inline-block; padding:10px 14px; border:1px solid var(--line); border-radius:10px; color:var(--ink); background:#0d1b16; }
     .btn-outline:hover{ background:#0f201a; }
@@ -62,26 +62,15 @@
       .imgblock img{ height:100%; }
     }
 
-    /* ===== Static neon text for "Modi" — no hover, no JS ===== */
+    /* ===== Static highlight text for "Modi" — no hover, no JS ===== */
     .name-neon{
       position:relative;
       display:inline-block;
       padding:0 .12em;
-      cursor:default;              /* not clickable-feeling */
+      cursor:default;
       user-select:text;
-
-      /* neon gradient inside text */
-      color:transparent;
-      -webkit-text-fill-color:transparent;
-      background:linear-gradient(90deg,var(--g1),var(--g2),var(--g3));
-      background-clip:text;
-      -webkit-background-clip:text;
-
-      /* soft outer glow */
-      text-shadow:
-        0 0 6px rgba(143,233,184,.35),
-        0 0 14px rgba(135,246,191,.25),
-        0 0 26px rgba(135,246,191,.14);
+      color:#8fe9b8;
+      text-shadow:0 0 8px rgba(143,233,184,.25);
     }
   </style>
 </head>
