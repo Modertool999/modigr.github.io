@@ -252,271 +252,232 @@
     </section>
   </main>
 
-  <script>
-    (function(){
-      const canvasHost = document.getElementById('cube-canvas');
-      if(!canvasHost){ return; }
+  <script type="module">
+    import * as THREE from './three.module.js';
+    import { OrbitControls } from './OrbitControls.js';
 
+    const canvasHost = document.getElementById('cube-canvas');
+    if(canvasHost){
       const cubeView = canvasHost.closest('.cube-view') || canvasHost;
-      const status = document.createElement('div');
-      status.style.position = 'absolute';
-      status.style.top = '10px';
-      status.style.right = '10px';
-      status.style.padding = '6px 10px';
-      status.style.background = 'rgba(12,18,16,.65)';
-      status.style.border = '1px solid rgba(255,255,255,.06)';
-      status.style.borderRadius = '8px';
-      status.style.fontSize = '12px';
-      status.style.color = '#b2cfc2';
-      status.textContent = 'Loading cube...';
-      cubeView.appendChild(status);
 
-      function loadScript(src){
-        return new Promise((resolve, reject)=>{
-          const s = document.createElement('script');
-          s.src = src;
-          s.async = true;
-          s.onload = ()=>resolve();
-          s.onerror = ()=>reject(new Error('Failed to load '+src));
-          document.head.appendChild(s);
-        });
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+      camera.position.set(4.2, 4.6, 5.2);
+      camera.lookAt(0,0,0);
+
+      const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      const attachRenderer = ()=>{
+        const rect = cubeView.getBoundingClientRect();
+        const w = rect.width || 420;
+        const h = rect.height || rect.width || 420;
+        renderer.setSize(w, h, false);
+        renderer.domElement.style.width = '100%';
+        renderer.domElement.style.height = '100%';
+      };
+      attachRenderer();
+      canvasHost.appendChild(renderer.domElement);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.08;
+      controls.target.set(0,0,0);
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+      const keyLight = new THREE.DirectionalLight(0xffffff, 1);
+      keyLight.position.set(5, 8, 6);
+      scene.add(keyLight);
+      const rimLight = new THREE.DirectionalLight(0x9de2c2, 0.45);
+      rimLight.position.set(-4, -3, -5);
+      scene.add(rimLight);
+
+      const cubeGroup = new THREE.Group();
+      scene.add(cubeGroup);
+
+      const cubies = [];
+      const baseMaterial = new THREE.MeshStandardMaterial({ color:0x0f1715, roughness:0.4, metalness:0.2 });
+      const sticker = (hex)=> new THREE.MeshStandardMaterial({ color:hex, roughness:0.2, metalness:0.05 });
+      const colors = { R:0xd64234, L:0xf07918, U:0xf6f4ec, D:0xf5c53c, F:0x52c98d, B:0x2f79d6 };
+      const spacing = 1.03;
+      let currentPivot = null;
+      let animationToken = 0;
+
+      function buildCube(){
+        clearCube();
+        for(let x=-1;x<=1;x++){
+          for(let y=-1;y<=1;y++){
+            for(let z=-1;z<=1;z++){
+              const geo = new THREE.BoxGeometry(0.96,0.96,0.96);
+              const materials = [
+                x===1 ? sticker(colors.R) : baseMaterial,
+                x===-1? sticker(colors.L) : baseMaterial,
+                y===1 ? sticker(colors.U) : baseMaterial,
+                y===-1? sticker(colors.D) : baseMaterial,
+                z===1 ? sticker(colors.F) : baseMaterial,
+                z===-1? sticker(colors.B) : baseMaterial,
+              ];
+              const mesh = new THREE.Mesh(geo, materials);
+              mesh.position.set(x*spacing, y*spacing, z*spacing);
+              mesh.userData.coords = new THREE.Vector3(x,y,z);
+              cubeGroup.add(mesh);
+              cubies.push(mesh);
+            }
+          }
+        }
       }
 
-      const threeURL = 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js';
-      const orbitURL = 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js';
-
-      loadScript(threeURL)
-        .then(()=>loadScript(orbitURL))
-        .then(()=>initCube())
-        .catch(err=>{
-          status.textContent = 'Unable to load 3D libs. Check network/CSP.';
-          console.error(err);
-        });
-
-      function initCube(){
-        if(!window.THREE || !THREE.OrbitControls){
-          status.textContent = '3D libs unavailable.';
-          return;
+      function clearCube(){
+        while(cubies.length){
+          const c = cubies.pop();
+          cubeGroup.remove(c);
+          c.geometry.dispose();
         }
-        status.textContent = 'Drag to orbit · Use F/B/L/R/U/D';
+      }
 
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
-        camera.position.set(4.2, 4.6, 5.2);
-        camera.lookAt(0,0,0);
+      const faceInfo = {
+        F:{ axis:'z', index:1, base:-1 },
+        B:{ axis:'z', index:-1, base:1 },
+        R:{ axis:'x', index:1, base:-1 },
+        L:{ axis:'x', index:-1, base:1 },
+        U:{ axis:'y', index:1, base:-1 },
+        D:{ axis:'y', index:-1, base:1 },
+      };
+      const queue = [];
+      let isAnimating = false;
+      const epsilon = 0.001;
 
-        const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        const attachRenderer = ()=>{
-          const rect = cubeView.getBoundingClientRect();
-          const w = rect.width || 420;
-          const h = rect.height || rect.width || 420;
-          renderer.setSize(w, h, false);
-          renderer.domElement.style.width = '100%';
-          renderer.domElement.style.height = '100%';
-        };
-        attachRenderer();
-        canvasHost.appendChild(renderer.domElement);
+      function enqueueMove(move){
+        if(!faceInfo[move.face]) return;
+        queue.push(move);
+        if(!isAnimating) stepQueue();
+      }
 
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.08;
-        controls.target.set(0,0,0);
+      function stepQueue(){
+        if(queue.length === 0){ isAnimating = false; return; }
+        isAnimating = true;
+        const { face, dir } = queue.shift();
+        animateMove(face, dir, ()=>stepQueue());
+      }
 
-        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-        const keyLight = new THREE.DirectionalLight(0xffffff, 1);
-        keyLight.position.set(5, 8, 6);
-        scene.add(keyLight);
-        const rimLight = new THREE.DirectionalLight(0x9de2c2, 0.45);
-        rimLight.position.set(-4, -3, -5);
-        scene.add(rimLight);
+      function animateMove(face, dir, onComplete){
+        const meta = faceInfo[face];
+        const angle = meta.base * dir * Math.PI / 2;
+        const axis = meta.axis;
+        const layer = cubies.filter(c => Math.abs(c.userData.coords[axis] - meta.index) < 0.1);
+        if(layer.length === 0){ onComplete(); return; }
 
-        const cubeGroup = new THREE.Group();
-        scene.add(cubeGroup);
+        const pivot = new THREE.Group();
+        scene.add(pivot);
+        layer.forEach(c => pivot.attach(c));
+        currentPivot = pivot;
 
-        const cubies = [];
-        const baseMaterial = new THREE.MeshStandardMaterial({ color:0x0f1715, roughness:0.4, metalness:0.2 });
-        const sticker = (hex)=> new THREE.MeshStandardMaterial({ color:hex, roughness:0.2, metalness:0.05 });
-        const colors = { R:0xd64234, L:0xf07918, U:0xf6f4ec, D:0xf5c53c, F:0x52c98d, B:0x2f79d6 };
-        const spacing = 1.03;
-        let currentPivot = null;
-        let animationToken = 0;
+        const start = performance.now();
+        const duration = 260;
+        const token = animationToken;
 
-        function buildCube(){
-          clearCube();
-          for(let x=-1;x<=1;x++){
-            for(let y=-1;y<=1;y++){
-              for(let z=-1;z<=1;z++){
-                const geo = new THREE.BoxGeometry(0.96,0.96,0.96);
-                const materials = [
-                  x===1 ? sticker(colors.R) : baseMaterial,
-                  x===-1? sticker(colors.L) : baseMaterial,
-                  y===1 ? sticker(colors.U) : baseMaterial,
-                  y===-1? sticker(colors.D) : baseMaterial,
-                  z===1 ? sticker(colors.F) : baseMaterial,
-                  z===-1? sticker(colors.B) : baseMaterial,
-                ];
-                const mesh = new THREE.Mesh(geo, materials);
-                mesh.position.set(x*spacing, y*spacing, z*spacing);
-                mesh.userData.coords = new THREE.Vector3(x,y,z);
-                cubeGroup.add(mesh);
-                cubies.push(mesh);
-              }
-            }
-          }
-        }
-
-        function clearCube(){
-          while(cubies.length){
-            const c = cubies.pop();
-            cubeGroup.remove(c);
-            c.geometry.dispose();
-          }
-        }
-
-        const faceInfo = {
-          F:{ axis:'z', index:1, base:-1 },
-          B:{ axis:'z', index:-1, base:1 },
-          R:{ axis:'x', index:1, base:-1 },
-          L:{ axis:'x', index:-1, base:1 },
-          U:{ axis:'y', index:1, base:-1 },
-          D:{ axis:'y', index:-1, base:1 },
-        };
-        const queue = [];
-        let isAnimating = false;
-        const epsilon = 0.001;
-
-        function enqueueMove(move){
-          if(!faceInfo[move.face]) return;
-          queue.push(move);
-          if(!isAnimating) stepQueue();
-        }
-
-        function stepQueue(){
-          if(queue.length === 0){ isAnimating = false; return; }
-          isAnimating = true;
-          const { face, dir } = queue.shift();
-          animateMove(face, dir, ()=>stepQueue());
-        }
-
-        function animateMove(face, dir, onComplete){
-          const meta = faceInfo[face];
-          const angle = meta.base * dir * Math.PI / 2;
-          const axis = meta.axis;
-          const layer = cubies.filter(c => Math.abs(c.userData.coords[axis] - meta.index) < 0.1);
-          if(layer.length === 0){ onComplete(); return; }
-
-          const pivot = new THREE.Group();
-          scene.add(pivot);
-          layer.forEach(c => pivot.attach(c));
-          currentPivot = pivot;
-
-          const start = performance.now();
-          const duration = 260;
-          const token = animationToken;
-
-          const easeInOutCubic = (t)=> t<0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
-          const tick = (now)=>{
-            if(token !== animationToken){ return; }
-            const t = Math.min((now - start)/duration, 1);
-            const eased = easeInOutCubic(t);
-            pivot.rotation[axis] = angle * eased;
-            if(t < 1){
-              requestAnimationFrame(tick);
-            } else {
-              pivot.rotation[axis] = angle;
-              layer.forEach(c => cubeGroup.attach(c));
-              scene.remove(pivot);
-              currentPivot = null;
-              updateLogicalCoords(layer, axis, Math.sign(angle));
-              onComplete();
-            }
-          };
-          requestAnimationFrame(tick);
-        }
-
-        function updateLogicalCoords(layer, axis, dir){
-          layer.forEach(c=>{
-            const coord = c.userData.coords;
-            const { x,y,z } = coord;
-            if(axis === 'x'){
-              coord.y = dir === 1 ? -z : z;
-              coord.z = dir === 1 ? y : -y;
-            }else if(axis === 'y'){
-              coord.x = dir === 1 ? z : -z;
-              coord.z = dir === 1 ? -x : x;
-            }else if(axis === 'z'){
-              coord.x = dir === 1 ? -y : y;
-              coord.y = dir === 1 ? x : -x;
-            }
-            coord.x = Math.abs(coord.x) < epsilon ? 0 : Math.round(coord.x*1000)/1000;
-            coord.y = Math.abs(coord.y) < epsilon ? 0 : Math.round(coord.y*1000)/1000;
-            coord.z = Math.abs(coord.z) < epsilon ? 0 : Math.round(coord.z*1000)/1000;
-          });
-        }
-
-        function parseMove(notation){
-          const prime = notation.includes("'");
-          const face = notation[0].toUpperCase();
-          return { face, dir: prime ? -1 : 1 };
-        }
-
-        function resetCube(){
-          animationToken++;
-          if(currentPivot){
-            [...currentPivot.children].forEach(c => cubeGroup.attach(c));
-            scene.remove(currentPivot);
+        const easeInOutCubic = (t)=> t<0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
+        const tick = (now)=>{
+          if(token !== animationToken){ return; }
+          const t = Math.min((now - start)/duration, 1);
+          const eased = easeInOutCubic(t);
+          pivot.rotation[axis] = angle * eased;
+          if(t < 1){
+            requestAnimationFrame(tick);
+          } else {
+            pivot.rotation[axis] = angle;
+            layer.forEach(c => cubeGroup.attach(c));
+            scene.remove(pivot);
             currentPivot = null;
+            updateLogicalCoords(layer, axis, Math.sign(angle));
+            onComplete();
           }
-          queue.length = 0;
-          isAnimating = false;
-          buildCube();
-        }
-
-        function scrambleCube(count=18){
-          const faces = Object.keys(faceInfo);
-          for(let i=0;i<count;i++){
-            const face = faces[Math.floor(Math.random()*faces.length)];
-            const dir = Math.random()>0.5 ? 1 : -1;
-            enqueueMove({ face, dir });
-          }
-        }
-
-        buildCube();
-
-        document.querySelectorAll('.cube-controls button[data-move]').forEach(btn=>{
-          btn.addEventListener('click', ()=> enqueueMove(parseMove(btn.dataset.move)));
-        });
-        const resetBtn = document.querySelector('button[data-action="reset"]');
-        const scrambleBtn = document.querySelector('button[data-action="scramble"]');
-        resetBtn?.addEventListener('click', resetCube);
-        scrambleBtn?.addEventListener('click', ()=>scrambleCube());
-
-        window.addEventListener('keydown',(e)=>{
-          const key = e.key.toUpperCase();
-          if(faceInfo[key]){
-            enqueueMove({ face:key, dir:1 });
-          }
-        });
-
-        function onResize(){
-          const rect = cubeView.getBoundingClientRect();
-          const w = rect.width || 420;
-          const h = rect.height || rect.width || 420;
-          renderer.setSize(w, h, false);
-          camera.aspect = w / h;
-          camera.updateProjectionMatrix();
-        }
-        window.addEventListener('resize', onResize);
-        onResize();
-
-        (function render(){
-          controls.update();
-          renderer.render(scene, camera);
-          requestAnimationFrame(render);
-        })();
+        };
+        requestAnimationFrame(tick);
       }
-    })();
+
+      function updateLogicalCoords(layer, axis, dir){
+        layer.forEach(c=>{
+          const coord = c.userData.coords;
+          const { x,y,z } = coord;
+          if(axis === 'x'){
+            coord.y = dir === 1 ? -z : z;
+            coord.z = dir === 1 ? y : -y;
+          }else if(axis === 'y'){
+            coord.x = dir === 1 ? z : -z;
+            coord.z = dir === 1 ? -x : x;
+          }else if(axis === 'z'){
+            coord.x = dir === 1 ? -y : y;
+            coord.y = dir === 1 ? x : -x;
+          }
+          coord.x = Math.abs(coord.x) < epsilon ? 0 : Math.round(coord.x*1000)/1000;
+          coord.y = Math.abs(coord.y) < epsilon ? 0 : Math.round(coord.y*1000)/1000;
+          coord.z = Math.abs(coord.z) < epsilon ? 0 : Math.round(coord.z*1000)/1000;
+        });
+      }
+
+      function parseMove(notation){
+        const prime = notation.includes("'");
+        const face = notation[0].toUpperCase();
+        return { face, dir: prime ? -1 : 1 };
+      }
+
+      function resetCube(){
+        animationToken++;
+        if(currentPivot){
+          [...currentPivot.children].forEach(c => cubeGroup.attach(c));
+          scene.remove(currentPivot);
+          currentPivot = null;
+        }
+        queue.length = 0;
+        isAnimating = false;
+        buildCube();
+      }
+
+      function scrambleCube(count=18){
+        const faces = Object.keys(faceInfo);
+        for(let i=0;i<count;i++){
+          const face = faces[Math.floor(Math.random()*faces.length)];
+          const dir = Math.random()>0.5 ? 1 : -1;
+          enqueueMove({ face, dir });
+        }
+      }
+
+      buildCube();
+
+      document.querySelectorAll('.cube-controls button[data-move]').forEach(btn=>{
+        btn.addEventListener('click', ()=> enqueueMove(parseMove(btn.dataset.move)));
+      });
+      const resetBtn = document.querySelector('button[data-action="reset"]');
+      const scrambleBtn = document.querySelector('button[data-action="scramble"]');
+      resetBtn?.addEventListener('click', resetCube);
+      scrambleBtn?.addEventListener('click', ()=>scrambleCube());
+
+      window.addEventListener('keydown',(e)=>{
+        const key = e.key.toUpperCase();
+        if(faceInfo[key]){
+          enqueueMove({ face:key, dir:1 });
+        }
+      });
+
+      function onResize(){
+        const rect = cubeView.getBoundingClientRect();
+        const w = rect.width || 420;
+        const h = rect.height || rect.width || 420;
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+      }
+      window.addEventListener('resize', onResize);
+      onResize();
+
+      (function render(){
+        controls.update();
+        renderer.render(scene, camera);
+        requestAnimationFrame(render);
+      })();
+    } else {
+      console.warn('Cube canvas missing from DOM.');
+    }
   </script>
 </body>
 </html>
