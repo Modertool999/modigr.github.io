@@ -84,7 +84,6 @@
             <div style="font-size:14px;">Start (YYYY-MM-DD)</div>
             <div class="date-field-loading">Loading cached window…</div>
             <div class="date-field-ready">
-              <!-- IMPORTANT: single backslashes in pattern, default value updated via JS -->
               <input id="startDate" type="text" pattern="^\d{4}-\d{2}-\d{2}$" value="2022-01-03" required />
               <div style="font-size:12px;color:#a9d7c5;">Earliest allowed: <span id="startDefault">2022-01-03</span></div>
             </div>
@@ -93,13 +92,11 @@
             <div style="font-size:14px;">End (YYYY-MM-DD)</div>
             <div class="date-field-loading">Loading cached window…</div>
             <div class="date-field-ready">
-              <!-- Prefilled default value -->
               <input id="endDate" type="text" pattern="^\d{4}-\d{2}-\d{2}$" value="2025-11-07" required />
               <div style="font-size:12px;color:#a9d7c5;">Latest allowed: <span id="endDefault">2025-11-07</span></div>
             </div>
           </label>
           <div style="display:flex; align-items:flex-end; gap:12px;">
-            <!-- type=button so clicks always fire regardless of form validity UI -->
             <button id="runBacktest" type="button" class="btn">Run backtest</button>
             <button id="resetBacktest" type="button" class="btn-outline">Reset</button>
           </div>
